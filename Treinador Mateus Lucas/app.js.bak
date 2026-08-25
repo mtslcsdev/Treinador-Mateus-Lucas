@@ -1,0 +1,2931 @@
+let dados;
+try {
+  dados = JSON.parse(localStorage.getItem("plannerCorrida")) || { atletas: [], ultimoBackup: null, zonas: null };
+} catch (e) {
+  console.error("Erro ao carregar dados do localStorage:", e);
+  dados = { atletas: [], ultimoBackup: null, zonas: null };
+}
+
+/* ================= SEGURANÇA ================= */
+function sanitizeHTML(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* ================= UTILITÁRIOS DE UI ================= */
+
+function showToast(mensagem, tipo = 'info') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    container.setAttribute('role', 'status');
+    container.setAttribute('aria-live', 'polite');
+    document.body.appendChild(container);
+  }
+  const icons = { sucesso: '✅', erro: '❌', aviso: '⚠️', info: 'ℹ️' };
+  const toast = document.createElement('div');
+  toast.className = `toast ${tipo}`;
+  toast.innerHTML = `<span>${icons[tipo] || 'ℹ️'}</span><span>${sanitizeHTML(mensagem)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('saindo');
+    toast.addEventListener('animationend', () => toast.remove(), { once: true });
+  }, 3200);
+}
+
+function showConfirm(mensagem, titulo = 'Confirmar', tipo = 'perigo') {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    const icons = { perigo: '🗑️', atencao: '⚠️', confirmar: '❓' };
+    overlay.innerHTML = `
+      <div class="modal-box" role="dialog" aria-modal="true">
+        <div class="modal-icone">${icons[tipo] || '❓'}</div>
+        <div class="modal-titulo" id="modal-titulo">${sanitizeHTML(titulo)}</div>
+        <div class="modal-msg">${sanitizeHTML(mensagem)}</div>
+        <div class="modal-acoes">
+          <button class="modal-btn modal-btn-cancelar" id="modal-nao">Cancelar</button>
+          <button class="modal-btn modal-btn-${tipo}" id="modal-sim">Confirmar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#modal-sim').focus();
+    const close = (r) => { overlay.remove(); resolve(r); };
+    overlay.querySelector('#modal-sim').onclick = () => close(true);
+    overlay.querySelector('#modal-nao').onclick = () => close(false);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+    overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(false); });
+  });
+}
+
+function showSelecaoModal(titulo, opcoes, labelConfirmar = 'Selecionar') {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    const opcoesHTML = opcoes.map((op, i) => `<option value="${i}">${sanitizeHTML(op)}</option>`).join('');
+    overlay.innerHTML = `
+      <div class="modal-box" role="dialog" aria-modal="true">
+        <div class="modal-titulo" id="modal-titulo">${sanitizeHTML(titulo)}</div>
+        <select class="modal-select" id="modal-select-op">${opcoesHTML}</select>
+        <div class="modal-acoes">
+          <button class="modal-btn modal-btn-cancelar" id="modal-nao">Cancelar</button>
+          <button class="modal-btn modal-btn-confirmar" id="modal-sim">${sanitizeHTML(labelConfirmar)}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#modal-sim').focus();
+    const close = (r) => { overlay.remove(); resolve(r); };
+    overlay.querySelector('#modal-sim').onclick = () => {
+      close(parseInt(overlay.querySelector('#modal-select-op').value));
+    };
+    overlay.querySelector('#modal-nao').onclick = () => close(null);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
+    overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(null); });
+  });
+}
+
+function showInputModal(titulo, placeholder = '', valorPadrao = '') {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box" role="dialog" aria-modal="true">
+        <div class="modal-titulo" id="modal-titulo">${sanitizeHTML(titulo)}</div>
+        <input type="text" class="modal-input-texto" id="modal-input" placeholder="${sanitizeHTML(placeholder)}" value="${sanitizeHTML(valorPadrao)}" />
+        <div class="modal-acoes">
+          <button class="modal-btn modal-btn-cancelar" id="modal-nao">Cancelar</button>
+          <button class="modal-btn modal-btn-confirmar" id="modal-sim">Confirmar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#modal-input');
+    input.focus(); input.select();
+    const close = (r) => { overlay.remove(); resolve(r); };
+    overlay.querySelector('#modal-sim').onclick = () => {
+      const val = input.value.trim(); if (val) close(val); else input.focus();
+    };
+    overlay.querySelector('#modal-nao').onclick = () => close(null);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { const v = input.value.trim(); if (v) close(v); }
+      if (e.key === 'Escape') close(null);
+    });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
+  });
+}
+
+function showExportModal() {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal-box" role="dialog" aria-modal="true">
+        <div class="modal-icone">📄</div>
+        <div class="modal-titulo" id="modal-titulo">Exportar PDF</div>
+        <div class="modal-msg">Escolha o que deseja exportar:</div>
+        <div class="modal-acoes" style="flex-direction: column; gap: 8px;">
+          <button class="modal-btn modal-btn-confirmar" id="exp-completo" style="width: 100%;">📋 Ciclo Completo</button>
+          <button class="modal-btn modal-btn-confirmar" id="exp-semana" style="width: 100%; background:#17a2b8;">🗓️ Semana Específica</button>
+          <button class="modal-btn modal-btn-cancelar" id="exp-cancelar" style="width: 100%;">Cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const close = (r) => { overlay.remove(); resolve(r); };
+    overlay.querySelector('#exp-completo').onclick = () => close('completo');
+    overlay.querySelector('#exp-semana').onclick = () => close('semana');
+    overlay.querySelector('#exp-cancelar').onclick = () => close(null);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
+    overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(null); });
+  });
+}
+
+function showPDFLoading(mostrar) {
+  let el = document.getElementById('pdf-loading');
+  if (mostrar) {
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'pdf-loading';
+      el.className = 'pdf-loading';
+      el.innerHTML = `<div class="pdf-spinner"></div><div class="pdf-loading-txt">Gerando PDF...</div>`;
+      document.body.appendChild(el);
+    }
+  } else {
+    if (el) el.remove();
+  }
+}
+
+let atletaAtual = null;
+let cicloAtual = null;
+let modoEdicao = false;
+let modoCalendario = false;
+let filtroAtivo = { fase: "", busca: "" };
+let zonasCalculadas = null;
+
+/* ===== CONFIGURAÇÃO DE TIPOS DE TREINO ===== */
+const TIPO_CONFIG = {
+  'Corrida Leve':  { cor: 'tipo-leve',        icon: '🟢' },
+  'Fartlek':       { cor: 'tipo-fartlek',      icon: '🔵' },
+  'Progressivo':   { cor: 'tipo-progressivo',  icon: '🟡' },
+  'Intervalado':   { cor: 'tipo-intervalado',  icon: '🔴' },
+  'Repetições':    { cor: 'tipo-repeticoes',   icon: '🟣' },
+  'Bloco':         { cor: 'tipo-bloco',        icon: '🟠' },
+  'Longão':        { cor: 'tipo-longao',       icon: '🔷' },
+  'Rodagem':       { cor: 'tipo-longao',       icon: '🔵' },
+  'Ritmado':       { cor: 'tipo-ritmado',      icon: '🟤' },
+  'TRT':           { cor: 'tipo-trt',          icon: '⚡' },
+  _default:        { cor: 'tipo-default',      icon: '🏃' }
+};
+
+function getTipoConfig(tipo) {
+  if (!tipo) return TIPO_CONFIG._default;
+  const chave = Object.keys(TIPO_CONFIG).find(k =>
+    k !== '_default' && tipo.toLowerCase().includes(k.toLowerCase())
+  );
+  return chave ? TIPO_CONFIG[chave] : TIPO_CONFIG._default;
+}
+
+function iniciais(nome) {
+  if (!nome) return '?';
+  return nome.split(' ').map(p => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+
+/* ===== UNDO/REDO SYSTEM ===== */
+let undoStack = [];
+let redoStack = [];
+
+function salvarSnapshot() {
+  try {
+    undoStack.push(JSON.stringify(dados));
+    if (undoStack.length > 30) undoStack.shift();
+    redoStack = [];
+  } catch (e) {
+    console.error("Erro ao criar snapshot:", e);
+  }
+}
+
+function salvar() {
+  salvarSnapshot();
+  try {
+    localStorage.setItem("plannerCorrida", JSON.stringify(dados));
+    verificarBackup();
+  } catch (e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+      showToast('Armazenamento cheio! Exporte um backup e apague dados antigos.', 'erro');
+    } else {
+      console.error('Erro ao salvar:', e);
+    }
+  }
+}
+
+function desfazer() {
+  if (undoStack.length === 0) { showToast('Nada para desfazer.', 'info'); return; }
+  redoStack.push(JSON.stringify(dados));
+  dados = JSON.parse(undoStack.pop());
+  localStorage.setItem("plannerCorrida", JSON.stringify(dados));
+  atletaAtual = dados.atletas.find(a => a && a.id === atletaAtual?.id) || null;
+  cicloAtual = atletaAtual?.ciclos?.find(c => c && c.id === cicloAtual?.id) || null;
+  renderAtletas();
+  if (atletaAtual) { renderCiclos(); atualizarBreadcrumb(); }
+  if (cicloAtual) { renderSemanas(); atualizarSumario(); renderGraficoVolume(); renderProvaAlvo(); }
+  showToast('Ação desfeita.', 'info');
+}
+
+function refazer() {
+  if (redoStack.length === 0) { showToast('Nada para refazer.', 'info'); return; }
+  undoStack.push(JSON.stringify(dados));
+  dados = JSON.parse(redoStack.pop());
+  localStorage.setItem("plannerCorrida", JSON.stringify(dados));
+  atletaAtual = dados.atletas.find(a => a && a.id === atletaAtual?.id) || null;
+  cicloAtual = atletaAtual?.ciclos?.find(c => c && c.id === cicloAtual?.id) || null;
+  renderAtletas();
+  if (atletaAtual) { renderCiclos(); atualizarBreadcrumb(); }
+  if (cicloAtual) { renderSemanas(); atualizarSumario(); renderGraficoVolume(); renderProvaAlvo(); }
+  showToast('Ação refeita.', 'info');
+}
+
+/* ================= CÁLCULO DE ZONAS DE TREINO ================= */
+
+/**
+ * Calcula as 5 zonas de treino baseado no pace de teste de 3km
+ * @param {number} paceSegundos - Pace médio em segundos (ex: 300 = 5min/km)
+ * @returns {Object} Objeto com zonas Z1 a Z5 em formato HH:MM:SS/km
+ */
+function calcularZonas(paceSegundos) {
+  if (!paceSegundos || paceSegundos <= 0) {
+    return null;
+  }
+
+  // Percentuais de cada zona em relação ao pace de teste de 3km
+  const percentuaisZonas = {
+    Z1: 0.60,  // Z1: 60% - Recuperação ativa
+    Z2: 0.70,  // Z2: 70% - Leve/Fundo
+    Z3: 0.85,  // Z3: 85% - Aeróbio moderado
+    Z4: 0.95,  // Z4: 95% - Limiar
+    Z5: 1.00   // Z5: 100% - Máxima
+  };
+
+  // Como velocidade é inversa do pace, os percentuais se invertem
+  // Se quer treinar a Z1 (mais lento), o pace aumenta em relação ao %
+  const zonas = {};
+  
+  Object.keys(percentuaisZonas).forEach(zona => {
+    // Pace mais lento = divisão; pace mais rápido = multiplicação
+    const fator = 1 / percentuaisZonas[zona];
+    const paceSomaZona = Math.round(paceSegundos * fator);
+    zonas[zona] = {
+      paceSegundos: paceSomaZona,
+      paceFormatado: formatarPace(paceSomaZona),
+      velocidadeKmh: calcularVelocidadeKmh(paceSomaZona)
+    };
+  });
+
+  return zonas;
+}
+
+/**
+ * Formata segundos para formato HH:MM:SS/km
+ * @param {number} segundos - Segundos para formatar
+ * @returns {string} Formato HH:MM:SS/km
+ */
+function formatarPace(segundos) {
+  const horas = Math.floor(segundos / 3600);
+  const minutos = Math.floor((segundos % 3600) / 60);
+  const secs = segundos % 60;
+  
+  const padStart = (num) => String(num).padStart(2, '0');
+  
+  if (horas > 0) {
+    return `${padStart(horas)}:${padStart(minutos)}:${padStart(secs)}/km`;
+  } else {
+    return `${padStart(minutos)}:${padStart(secs)}/km`;
+  }
+}
+
+/**
+ * Calcula velocidade em km/h a partir de pace em segundos
+ * @param {number} paceSegundos - Pace em segundos por km
+ * @returns {number} Velocidade em km/h (2 casas decimais)
+ */
+function calcularVelocidadeKmh(paceSegundos) {
+  if (paceSegundos <= 0) return 0;
+  return parseFloat((3600 / paceSegundos).toFixed(2));
+}
+
+/**
+ * Gera descrição textual de um treino para exibição ao aluno
+ * @param {Object} treino - Objeto do treino com propriedades: tipo, zona, blocos
+ * @param {Object} zonas - Zonas calculadas pelo calcularZonas()
+ * @returns {string} Descrição formatada do treino
+ */
+function gerarDescricaoTreino(treino, zonas) {
+  let descricao = "";
+
+  if (!treino || !treino.tipo) {
+    return "Treino sem tipo especificado";
+  }
+
+  // Mapeamento de tipos de treino e descrições
+  const descricoesTipos = {
+    recuperacao: {
+      descricao: "Treino de Recuperação",
+      zona: "Z1-Z2",
+      objetivo: "Recuperação ativa, manter frequência cardíaca baixa"
+    },
+    fundo: {
+      descricao: "Corrida em Fundo",
+      zona: "Z2-Z3",
+      objetivo: "Desenvolvimento aeróbio, conversível"
+    },
+    progressivo: {
+      descricao: "Corrida Progressiva",
+      zona: "Z2 → Z3 → Z4",
+      objetivo: "Progressão gradual de intensidade"
+    },
+    ritmo: {
+      descricao: "Treino de Ritmo (Limiar)",
+      zona: "Z4",
+      objetivo: "Melhorar limiar anaeróbio"
+    },
+    intervalado: {
+      descricao: "Treino Intervalado",
+      zona: "Z4-Z5",
+      objetivo: "Desenvolvimento de potência aeróbia"
+    },
+    repeticoes: {
+      descricao: "Treino de Repetições",
+      zona: "Z5",
+      objetivo: "Desenvolvimento de velocidade máxima"
+    },
+    fartlek: {
+      descricao: "Fartlek (Brincadeira da Velocidade)",
+      zona: "Z2-Z5",
+      objetivo: "Variação de ritmo em ambiente natural"
+    },
+    trt: {
+      descricao: "TRT - Teste de Ritmo Total",
+      zona: "Z1-Z5",
+      objetivo: "Teste completo de ritmo com variação de intensidades"
+    }
+  };
+
+  const tipoLower = treino.tipo.toLowerCase();
+  const infoTipo = descricoesTipos[tipoLower] || {
+    descricao: treino.tipo,
+    zona: "Zona não definida",
+    objetivo: "Vide observações"
+  };
+
+  descricao += `🏃 ${infoTipo.descricao}\n`;
+  descricao += `📊 Zona(s): ${infoTipo.zona}\n`;
+  descricao += `🎯 Objetivo: ${infoTipo.objetivo}\n`;
+
+  // Se houver blocos/repetições, detalhá-los
+  if (treino.blocos && Array.isArray(treino.blocos) && treino.blocos.length > 0) {
+    descricao += `\n📋 Estrutura do Treino:\n`;
+    
+    treino.blocos.forEach((bloco, idx) => {
+      descricao += `  ${idx + 1}. ${bloco.descricao || `Bloco ${idx + 1}`}\n`;
+      
+      if (bloco.distancia) {
+        descricao += `     - Distância: ${bloco.distancia}km\n`;
+      }
+      
+      if (bloco.repeticoes) {
+        descricao += `     - Repetições: ${bloco.repeticoes}x\n`;
+      }
+      
+      if (bloco.intervalo) {
+        descricao += `     - Intervalo/Recuperação: ${bloco.intervalo}\n`;
+      }
+      
+      if (bloco.pace) {
+        descricao += `     - Pace: ${bloco.pace}\n`;
+      }
+    });
+  }
+
+  // Adicionar observações
+  if (treino.obs) {
+    descricao += `\n📝 Observações: ${treino.obs}`;
+  }
+
+  return descricao;
+}
+
+/**
+ * Calcula distância total do treino a partir de blocos e repetições
+ * @param {Array} blocos - Array de blocos com estrutura {distancia, repeticoes}
+ * @returns {number} Distância total em km
+ */
+function calcularDistanciaTotalTreino(blocos) {
+  if (!blocos || !Array.isArray(blocos) || blocos.length === 0) {
+    return 0;
+  }
+
+  let distanciaTotal = 0;
+
+  blocos.forEach(bloco => {
+    // Converter distância para número se for string
+    const distancia = parseFloat(bloco.distancia) || 0;
+    const repeticoes = parseInt(bloco.repeticoes) || 1;
+    
+    distanciaTotal += distancia * repeticoes;
+  });
+
+  return parseFloat(distanciaTotal.toFixed(2));
+}
+
+/**
+ * Gera resumo completo do treino com todas as informações
+ * @param {Object} treino - Objeto do treino
+ * @param {Object} zonas - Zonas calculadas
+ * @returns {Object} Resumo com tipo, modalidade, distância total e descrição
+ */
+function gerarResumaTreino(treino, zonas) {
+  if (!treino) {
+    return null;
+  }
+
+  const distanciaTotal = treino.blocos ? calcularDistanciaTotalTreino(treino.blocos) : 0;
+  const descricao = gerarDescricaoTreino(treino, zonas);
+
+  return {
+    tipo: treino.tipo || "Não especificado",
+    modalidade: treino.modalidade || "Corrida",
+    distanciaTotal: distanciaTotal,
+    distanciaFormatada: `${distanciaTotal}km`,
+    descricao: descricao,
+    zona: treino.zona || "Z2",
+    duracao: treino.duracao || null,
+    pace: treino.pace || null,
+    observacoes: treino.obs || null,
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
+ * Converte formato MM:SS para segundos
+ */
+function converterPaceParaSegundos(paceFormatado) {
+  if (!paceFormatado) return null;
+  const pace = paceFormatado.trim();
+
+  // Aceita MM:SS (ex: 5:00 ou 05:00)
+  if (!/^\d{1,2}:\d{2}$/.test(pace)) return null;
+
+  const partes = pace.split(':');
+  const minutos = parseInt(partes[0], 10);
+  const segundos = parseInt(partes[1], 10);
+
+  if (segundos >= 60) return null; // segundos inválidos
+  if (minutos <= 0 && segundos <= 0) return null;
+
+  return minutos * 60 + segundos;
+}
+
+/**
+ * Calcula e exibe as zonas de treino na interface
+ */
+function validarPaceInput(input) {
+  const val = input.value.trim();
+  if (!val) { input.classList.remove('input-invalido'); return; }
+  const valido = /^\d{1,2}:\d{0,2}$/.test(val) || /^\d{1,2}$/.test(val);
+  input.classList.toggle('input-invalido', !valido);
+}
+
+function calcularEExibirZonas() {
+  const inputPace = document.getElementById("paceTeste5km").value.trim();
+  
+  if (!inputPace) {
+    showToast("Digite o pace do teste de 3km!", 'aviso');
+    document.getElementById("paceTeste5km").classList.add('input-invalido');
+    return;
+  }
+
+  const paceSegundos = converterPaceParaSegundos(inputPace);
+
+  if (!paceSegundos || paceSegundos <= 0) {
+    showToast("Formato inválido! Use MM:SS (ex: 05:00)", 'erro');
+    document.getElementById("paceTeste5km").classList.add('input-invalido');
+    return;
+  }
+
+  document.getElementById("paceTeste5km").classList.remove('input-invalido');
+  zonasCalculadas = calcularZonas(paceSegundos);
+
+  if (!zonasCalculadas) {
+    showToast("Erro ao calcular as zonas!", 'erro');
+    return;
+  }
+  
+  // Salvar no localStorage
+  dados.zonas = {
+    paceTeste3km: inputPace,
+    paceSegundos: paceSegundos,
+    zonas: zonasCalculadas,
+    dataCalculo: new Date().toISOString()
+  };
+
+  // Salvar no histórico de testes
+  dados.historicoPaces = dados.historicoPaces || [];
+  const dataHoje = new Date().toLocaleDateString('pt-BR');
+  // Evitar duplicata do mesmo dia
+  const jaExiste = dados.historicoPaces[0]?.data === dataHoje && dados.historicoPaces[0]?.pace === inputPace;
+  if (!jaExiste) {
+    dados.historicoPaces.unshift({ data: dataHoje, pace: inputPace, paceSegundos });
+    if (dados.historicoPaces.length > 20) dados.historicoPaces.pop();
+  }
+
+  salvar();
+
+  // Exibir as zonas na interface
+  exibirZonasNaInterface();
+  renderHistoricoPaces();
+
+  showToast("Zonas calculadas com sucesso!", 'sucesso');
+}
+
+/**
+ * Exibe as zonas na interface visual
+ */
+function exibirZonasNaInterface() {
+  const container = document.getElementById("containerZonas");
+  if (!container || !zonasCalculadas) return;
+  
+  container.innerHTML = "";
+  
+  const zonaInfo = {
+    Z1: { nome: "Recuperação",    pct: "≤60%",  emoji: "🟢" },
+    Z2: { nome: "Leve / Fundo",   pct: "60–70%", emoji: "🔵" },
+    Z3: { nome: "Aeróbio",        pct: "70–85%", emoji: "🟡" },
+    Z4: { nome: "Limiar",         pct: "85–95%", emoji: "🟠" },
+    Z5: { nome: "Máxima",         pct: "95–100%",emoji: "🔴" }
+  };
+
+  Object.keys(zonasCalculadas).forEach(zona => {
+    const d = zonasCalculadas[zona];
+    const info = zonaInfo[zona] || { nome: zona, pct: "", emoji: "⚡" };
+    const card = document.createElement("div");
+    card.className = `zona-card ${zona.toLowerCase()}`;
+
+    card.innerHTML = `
+      <div class="zona-nome">${info.emoji} ${zona}</div>
+      <div class="zona-pace">${d.paceFormatado}</div>
+      <div class="zona-info">
+        <small><strong>${info.nome}</strong></small>
+        <small>${info.pct}</small>
+        <small>${d.velocidadeKmh} km/h</small>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+/**
+ * Carrega zonas do localStorage ao iniciar
+ */
+function carregarZonas() {
+  if (dados.zonas && dados.zonas.zonas) {
+    zonasCalculadas = dados.zonas.zonas;
+    document.getElementById("paceTeste5km").value = dados.zonas.paceTeste3km || dados.zonas.paceTeste5km || '';
+    exibirZonasNaInterface();
+  }
+  renderHistoricoPaces();
+}
+
+/* ================= MODO EDIÇÃO ================= */
+
+function alternarModoEdicao() {
+  modoEdicao = !modoEdicao;
+  const toggle = document.getElementById("toggleModoEdicao");
+  const status = document.getElementById("statusModo");
+
+  toggle.classList.toggle("ativo", modoEdicao);
+
+  if (modoEdicao) {
+    status.textContent = "✏️ Edição";
+    document.body.classList.remove("modo-visualization");
+  } else {
+    status.textContent = "🔒 Visualização";
+    document.body.classList.add("modo-visualization");
+  }
+
+  atualizarEditsDisabled();
+  if (cicloAtual) renderSemanas();
+  else if (atletaAtual) renderCiclos();
+}
+
+/* ================= TEMA ESCURO (REMOVIDO) ================= */
+// Dark theme toggle removed per user request
+
+function atualizarEditsDisabled() {
+  // Desabilita/Habilita inputs de formulário
+  document.getElementById("nomeAtleta").disabled = !modoEdicao;
+  document.getElementById("nomeCiclo").disabled = !modoEdicao;
+  document.getElementById("qtdSemanas").disabled = !modoEdicao;
+  
+  // Desabilita/Habilita botões de criação
+  document.querySelectorAll("button[onclick*='criar'], button[onclick*='Criar']").forEach(btn => {
+    if (!btn.classList.contains("btn-editar") && !btn.classList.contains("btn-remover") && !btn.classList.contains("btn-voltar")) {
+      btn.disabled = !modoEdicao;
+    }
+  });
+
+  // Desabilita/Habilita botão de copiar ciclo template
+  const btnCopiarTemplate = document.querySelector(".btn-copiar-template");
+  if (btnCopiarTemplate) {
+    btnCopiarTemplate.disabled = !modoEdicao;
+  }
+  
+  // Desabilita/Habilita inputs de treino
+  document.querySelectorAll(".treino input, .treino select").forEach(input => {
+    input.disabled = !modoEdicao;
+  });
+  
+  // Desabilita botões de edição e remoção
+  document.querySelectorAll(".btn-editar, .btn-remover").forEach(btn => {
+    btn.disabled = !modoEdicao;
+  });
+  
+  // Habilita botão de importar backup
+  const btnImportar = document.getElementById("btnImportar");
+  if (btnImportar) {
+    btnImportar.disabled = !modoEdicao;
+  }
+}
+
+/* ================= ATLETAS ================= */
+
+function toggleNovoAtletaForm() {
+  const form = document.getElementById("formNovoAtleta");
+  const input = document.getElementById("nomeAtleta");
+  
+  if (form.style.display === "none" || !form.style.display) {
+    form.style.display = "block";
+    input.focus();
+  } else {
+    form.style.display = "none";
+    input.value = "";
+  }
+}
+
+function criarAtleta() {
+  const input = document.getElementById("nomeAtleta");
+  const nome = input.value.trim();
+  const errorEl = document.getElementById("erroNomeAtleta");
+
+  if (!nome) {
+    input.classList.add('invalid');
+    if (errorEl) { errorEl.textContent = 'Digite o nome do atleta.'; errorEl.classList.add('visible'); }
+    return;
+  }
+  if (nome.length > 60) {
+    input.classList.add('invalid');
+    if (errorEl) { errorEl.textContent = 'Nome deve ter no máximo 60 caracteres.'; errorEl.classList.add('visible'); }
+    return;
+  }
+  input.classList.remove('invalid');
+  if (errorEl) errorEl.classList.remove('visible');
+
+  dados.atletas.push({
+    id: Date.now(),
+    nome,
+    ciclos: []
+  });
+
+  input.value = "";
+  toggleNovoAtletaForm();
+  salvar();
+  renderAtletas();
+}
+
+function renderAtletas() {
+  const container = document.getElementById("listaAtletas");
+  const emptyDiv  = document.getElementById("emptyAthletes");
+  container.innerHTML = "";
+
+  if (dados.atletas.length === 0) {
+    emptyDiv.style.display = "block";
+    const sub = document.getElementById("atletasSubtitle");
+    if (sub) sub.textContent = "Cadastre o primeiro atleta para começar";
+    return;
+  }
+
+  emptyDiv.style.display = "none";
+
+  const sub = document.getElementById("atletasSubtitle");
+  if (sub) sub.textContent = `${dados.atletas.length} atleta${dados.atletas.length !== 1 ? 's' : ''} cadastrado${dados.atletas.length !== 1 ? 's' : ''}`;
+
+  dados.atletas.forEach(atleta => {
+    const totalCiclos  = atleta.ciclos.length;
+    const totalTreinos = atleta.ciclos.reduce((s, c) =>
+      s + c.semanas.reduce((ss, sem) => ss + sem.treinos.length, 0), 0);
+
+    const card = document.createElement("div");
+    card.className = "atleta-card" + (atletaAtual && atletaAtual.id === atleta.id ? " selected" : "");
+    card.id = `atleta-${atleta.id}`;
+    card.title = `Abrir ciclos de ${atleta.nome}`;
+
+    const temNotas = atleta.notas && atleta.notas.trim().length > 0;
+    card.innerHTML = `
+      <div class="atleta-actions">
+        <button class="btn-notas-atleta" title="Notas do atleta" aria-label="Notas de ${sanitizeHTML(atleta.nome)}"
+          onclick="event.stopPropagation(); abrirNotasAtleta(${atleta.id})">${temNotas ? '📋' : '📝'}</button>
+        <button class="btn-icon" title="Editar nome" aria-label="Editar nome de ${sanitizeHTML(atleta.nome)}" ${!modoEdicao ? 'disabled' : ''}
+          onclick="event.stopPropagation(); editarAtleta(${atleta.id})">✏️</button>
+        <button class="btn-icon btn-icon-danger" title="Remover atleta" aria-label="Remover ${sanitizeHTML(atleta.nome)}" ${!modoEdicao ? 'disabled' : ''}
+          onclick="event.stopPropagation(); removerAtleta(${atleta.id})">🗑️</button>
+      </div>
+      <div class="atleta-avatar">${iniciais(atleta.nome)}</div>
+      <div>
+        <div class="atleta-nome">${sanitizeHTML(atleta.nome)}</div>
+        <div class="atleta-meta">${totalCiclos} ciclo${totalCiclos !== 1 ? 's' : ''} · ${totalTreinos} treino${totalTreinos !== 1 ? 's' : ''}${temNotas ? ' · 📋 notas' : ''}</div>
+      </div>`;
+
+    card.addEventListener('click', () => selecionarAtleta(atleta.id));
+    container.appendChild(card);
+  });
+
+  atualizarEditsDisabled();
+}
+
+function selecionarAtleta(id) {
+  atletaAtual = dados.atletas.find(a => a.id === id);
+  if (!atletaAtual) return;
+  if (!atletaAtual.ciclos) atletaAtual.ciclos = [];
+  cicloAtual = null;
+
+  document.getElementById("tituloAtleta").textContent = `📋 ${atletaAtual.nome}`;
+
+  // Mostra ciclos
+  document.getElementById("areaCiclos").classList.remove("hidden");
+
+  // Esconde semanas e limpa conteúdo
+  document.getElementById("areaSemanas").classList.add("hidden");
+  document.getElementById("tituloCiclo").textContent = "";
+  document.getElementById("semanas").innerHTML = "";
+
+  // Redesenha lista de atletas para destacar selecionado
+  renderAtletas();
+  renderCiclos();
+  atualizarBreadcrumb();
+}
+
+async function editarAtleta(id) {
+  const atleta = dados.atletas.find(a => a.id === id);
+  const novoNome = await showInputModal("Editar Nome do Atleta", "Nome do atleta", atleta.nome);
+
+  if (novoNome && novoNome.trim()) {
+    atleta.nome = novoNome.trim();
+    salvar();
+    renderAtletas();
+    if (atletaAtual && atletaAtual.id === id) {
+      document.getElementById("tituloAtleta").textContent = atleta.nome;
+    }
+  }
+}
+
+async function removerAtleta(id) {
+  const atleta = dados.atletas.find(a => a.id === id);
+  const nome = atleta ? atleta.nome : 'este atleta';
+  const confirmado = await showConfirm(
+    `Todos os ciclos e treinos de <strong>${nome}</strong> serão perdidos permanentemente.`,
+    `Remover ${nome}?`,
+    'perigo'
+  );
+  if (!confirmado) return;
+  dados.atletas = dados.atletas.filter(a => a.id !== id);
+  if (atletaAtual && atletaAtual.id === id) {
+    atletaAtual = null;
+    cicloAtual = null;
+    document.getElementById("areaCiclos").classList.add("hidden");
+    document.getElementById("areaSemanas").classList.add("hidden");
+    document.getElementById("tituloAtleta").textContent = "";
+    document.getElementById("tituloCiclo").textContent = "";
+    document.getElementById("semanas").innerHTML = "";
+  }
+  salvar();
+  renderAtletas();
+  showToast(`${nome} removido.`, 'info');
+}
+
+
+/* ================= CICLOS ================= */
+
+function criarCiclo() {
+  const nome = document.getElementById("nomeCiclo").value;
+  const qtdSemanas = document.getElementById("qtdSemanas").value;
+
+  if (!nome || !qtdSemanas || !atletaAtual) return;
+
+  const semanas = [];
+  const opcoesSemanasBase = [
+    "Semana Ordinária - Período Base",
+    "Semana de Choque - Período Base",
+    "Semana de Recuperação - Período Base",
+    "Semana Ordinária - Período Específico",
+    "Semana de Choque - Período Específico",
+    "Semana de Recuperação - Período Específico",
+    "Semana de Polimento",
+    "Semana de Prova",
+  ];
+
+  for (let i = 1; i <= qtdSemanas; i++) {
+    // Usa a opção pré-definida se existir, senão deixa vazio
+    const nomeSemanaPadrao = opcoesSemanasBase[i - 1] || "";
+    semanas.push({
+      semana: i,
+      nome: nomeSemanaPadrao,
+      treinos: []
+    });
+  }
+
+  atletaAtual.ciclos.push({
+    id: Date.now(),
+    nome,
+    prova: null,
+    semanas
+  });
+
+  document.getElementById("nomeCiclo").value = "";
+  document.getElementById("qtdSemanas").value = "";
+
+  salvar();
+  renderCiclos();
+}
+
+function renderCiclos() {
+  const container = document.getElementById("listaCiclos");
+  container.innerHTML = "";
+
+  if (!atletaAtual || !atletaAtual.ciclos) {
+    atualizarEditsDisabled();
+    return;
+  }
+
+  if (atletaAtual.ciclos.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <div class="empty-icon">📋</div>
+      <p class="empty-title">Nenhum ciclo criado ainda</p>
+      <p class="empty-sub">Preencha os campos acima e clique em "Criar Ciclo"</p>
+    </div>`;
+    atualizarEditsDisabled();
+    return;
+  }
+
+  atletaAtual.ciclos.forEach(ciclo => {
+    if (!ciclo.id) ciclo.id = Date.now() + Math.random();
+    if (!ciclo.semanas) ciclo.semanas = [];
+    ciclo.semanas.forEach(s => { if (!s.treinos) s.treinos = []; });
+    const totalSemanas = ciclo.semanas.length;
+    const totalTreinos = ciclo.semanas.reduce((s, sem) => s + sem.treinos.length, 0);
+
+    const card = document.createElement("div");
+    card.className = "ciclo-card";
+
+    const provaChip = ciclo.prova && ciclo.prova.nome
+      ? `<span class="ciclo-prova-chip">🎯 ${sanitizeHTML(ciclo.prova.nome)}${ciclo.prova.data ? ' · ' + new Date(ciclo.prova.data + 'T00:00:00').toLocaleDateString('pt-BR') : ''}</span>`
+      : '';
+    card.innerHTML = `
+      <div class="ciclo-card-header">
+        <div class="ciclo-icon">📋</div>
+        <div style="flex:1; min-width:0;">
+          <div class="ciclo-nome">${sanitizeHTML(ciclo.nome)}</div>
+          <div class="ciclo-stats">
+            <span class="ciclo-stat">📅 ${totalSemanas} sem.</span>
+            <span class="ciclo-stat">🏃 ${totalTreinos} trei.</span>
+          </div>
+          ${provaChip}
+        </div>
+      </div>
+      <div class="ciclo-actions">
+        <button class="btn-editar" style="flex:1; font-size:11px;" ${!modoEdicao ? 'disabled' : ''}
+          onclick="event.stopPropagation(); editarCiclo(${ciclo.id})">✏️ Editar</button>
+        <button class="btn-editar" style="background:var(--warning); font-size:11px;" title="Duplicar ciclo" ${!modoEdicao ? 'disabled' : ''}
+          onclick="event.stopPropagation(); duplicarCiclo(${ciclo.id})">📋</button>
+        <button class="btn-editar" style="background:#0891b2; font-size:11px;" title="Salvar como template" ${!modoEdicao ? 'disabled' : ''}
+          onclick="event.stopPropagation(); salvarCicloComoTemplate(${ciclo.id})">⭐</button>
+        <button class="btn-remover" style="font-size:11px;" ${!modoEdicao ? 'disabled' : ''}
+          onclick="event.stopPropagation(); removerCiclo(${ciclo.id})">🗑️</button>
+      </div>`;
+
+    card.addEventListener('click', () => selecionarCiclo(ciclo.id));
+    container.appendChild(card);
+  });
+
+  atualizarEditsDisabled();
+}
+
+async function editarCiclo(id) {
+  const ciclo = atletaAtual.ciclos.find(c => c.id === id);
+  const novoNome = await showInputModal("Editar Nome do Ciclo", "Nome do ciclo", ciclo.nome);
+
+  if (novoNome && novoNome.trim()) {
+    ciclo.nome = novoNome.trim();
+    salvar();
+    renderCiclos();
+    if (cicloAtual && cicloAtual.id === id) {
+      document.getElementById("tituloCiclo").textContent = ciclo.nome;
+    }
+  }
+}
+
+async function removerCiclo(id) {
+  const ciclo = atletaAtual.ciclos.find(c => c.id === id);
+  const nome = ciclo ? ciclo.nome : 'este ciclo';
+  const confirmado = await showConfirm(
+    `O ciclo <strong>${nome}</strong> e todos os seus treinos serão removidos.`,
+    'Remover Ciclo?',
+    'perigo'
+  );
+  if (!confirmado) return;
+  atletaAtual.ciclos = atletaAtual.ciclos.filter(c => c.id !== id);
+  if (cicloAtual && cicloAtual.id === id) {
+    voltarParaCiclos();
+  }
+  salvar();
+  renderCiclos();
+  showToast(`Ciclo "${nome}" removido.`, 'info');
+}
+
+function selecionarCiclo(id) {
+  cicloAtual = atletaAtual.ciclos.find(c => c.id === id);
+  if (!cicloAtual) {
+    showToast('Erro: ciclo não encontrado. Tente recarregar a página.', 'erro');
+    return;
+  }
+
+  document.getElementById("tituloCiclo").textContent = cicloAtual.nome;
+
+  document.getElementById("areaSemanas").classList.remove("hidden");
+  document.getElementById("sumarioCiclo").style.display = "flex";
+  document.getElementById("filtrosCiclo").style.display = "flex";
+
+  modoCalendario = false;
+  renderSemanas();
+  atualizarSumario();
+  renderGraficoVolume();
+  renderProvaAlvo();
+  atualizarBreadcrumb();
+}
+
+function voltarParaCiclos() {
+  cicloAtual = null;
+  document.getElementById("areaSemanas").classList.add("hidden");
+  document.getElementById("semanas").innerHTML = "";
+  document.getElementById("sumarioCiclo").style.display = "none";
+  document.getElementById("filtrosCiclo").style.display = "none";
+  filtroAtivo = { fase: "", busca: "" };
+  atualizarBreadcrumb();
+}
+
+/* ===== BREADCRUMB ===== */
+function atualizarBreadcrumb() {
+  const el = document.getElementById("breadcrumb");
+  if (!el) return;
+
+  if (!atletaAtual) {
+    el.classList.remove("visible");
+    el.innerHTML = "";
+    return;
+  }
+
+  el.classList.add("visible");
+  el.innerHTML = "";
+
+  const makeBtn = (label, onclick) => {
+    const btn = document.createElement("button");
+    btn.className = "breadcrumb-item breadcrumb-btn";
+    btn.textContent = label;
+    btn.onclick = onclick;
+    return btn;
+  };
+  const makeSep = () => { const s = document.createElement("span"); s.className = "breadcrumb-sep"; s.textContent = "›"; return s; };
+  const makeCurrent = (label) => { const s = document.createElement("span"); s.className = "breadcrumb-item current"; s.textContent = label; return s; };
+
+  el.appendChild(makeBtn("Atletas", voltarParaAtletas));
+
+  if (cicloAtual) {
+    el.appendChild(makeSep());
+    el.appendChild(makeBtn(atletaAtual.nome, voltarParaCiclos));
+    el.appendChild(makeSep());
+    el.appendChild(makeCurrent(cicloAtual.nome));
+  } else {
+    el.appendChild(makeSep());
+    el.appendChild(makeCurrent(atletaAtual.nome));
+  }
+}
+
+function voltarParaAtletas() {
+  atletaAtual = null;
+  cicloAtual  = null;
+  document.getElementById("areaCiclos").classList.add("hidden");
+  document.getElementById("areaSemanas").classList.add("hidden");
+  document.getElementById("tituloAtleta").textContent = "";
+  document.getElementById("tituloCiclo").textContent  = "";
+  document.getElementById("semanas").innerHTML = "";
+  document.getElementById("filtrosCiclo").style.display = "none";
+  document.getElementById("sumarioCiclo").style.display = "none";
+  filtroAtivo = { fase: "", busca: "" };
+  renderAtletas();
+  atualizarBreadcrumb();
+}
+
+/* ================= COPIAR CICLO DE TEMPLATE ================= */
+
+async function copiarCicloTemplate() {
+  let todosCiclos = [];
+  dados.atletas.forEach(atleta => {
+    atleta.ciclos.forEach(ciclo => {
+      todosCiclos.push({ cicloId: ciclo.id, cicloNome: ciclo.nome, atletaNome: atleta.nome, semanas: ciclo.semanas });
+    });
+  });
+
+  if (todosCiclos.length === 0) {
+    showToast("Nenhum ciclo disponível para copiar!", 'aviso');
+    return;
+  }
+
+  const opcoesTexto = todosCiclos.map(item => `${item.cicloNome} (${item.atletaNome})`);
+  const index = await showSelecaoModal('🔍 Copiar de Ciclo Existente', opcoesTexto, 'Selecionar');
+  if (index === null) return;
+
+  const cicloSelecionado = todosCiclos[index];
+  const novoNome = await showInputModal('Nome do novo ciclo:', 'Ex: Específico 2025', cicloSelecionado.cicloNome + ' (Cópia)');
+  if (!novoNome) return;
+
+  const novoCiclo = {
+    id: Date.now(),
+    nome: novoNome,
+    semanas: cicloSelecionado.semanas.map(semana => ({
+      semana: semana.semana,
+      nome: semana.nome,
+      treinos: semana.treinos.map(treino => ({
+        dia: treino.dia,
+        fase: treino.fase,
+        tipo: treino.tipo,
+        pace: treino.pace,
+        obs: treino.obs
+      }))
+    }))
+  };
+
+  atletaAtual.ciclos.push(novoCiclo);
+  salvar();
+  showToast(`Ciclo "${novoNome}" criado com sucesso!`, 'sucesso');
+  renderCiclos();
+}
+
+
+/* ================= SEMANAS ================= */
+
+function criarSemana() {
+  const numero = document.getElementById("numeroSemana").value;
+  if (!numero || !cicloAtual) return;
+
+  cicloAtual.semanas.push({
+    semana: numero,
+    treinos: []
+  });
+
+  document.getElementById("numeroSemana").value = "";
+  salvar();
+  renderSemanas();
+}
+
+function renderSemanas() {
+  const container = document.getElementById("semanas");
+  container.innerHTML = "";
+
+  if (cicloAtual.semanas.length === 0) {
+    container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:32px; font-size:14px;">Nenhuma semana neste ciclo.</p>`;
+    return;
+  }
+
+  if (modoCalendario) {
+    renderCalendario();
+    return;
+  }
+
+  cicloAtual.semanas.forEach((semana, index) => {
+    const div = document.createElement("div");
+    div.className = modoEdicao ? "secao-semana" : "secao-semana modo-viz";
+
+    const titulo = document.createElement("h3");
+
+    const spanTitulo = document.createElement("span");
+    spanTitulo.textContent = semana.nome
+      ? `Semana ${semana.semana}: ${semana.nome}`
+      : `Semana ${semana.semana}`;
+
+    const acoesTitulo = document.createElement("div");
+    acoesTitulo.style.display = "flex";
+    acoesTitulo.style.gap = "4px";
+
+    const btnEditar = document.createElement("button");
+    btnEditar.className = "btn-editar";
+    btnEditar.textContent = "✏️ Editar";
+    btnEditar.title = "Editar nome da semana";
+    btnEditar.disabled = !modoEdicao;
+    btnEditar.onclick = () => editarSemana(index);
+    btnEditar.style.cssText = "padding:4px 10px; font-size:11px; margin:0;";
+
+    const btnCopiarSemana = document.createElement("button");
+    btnCopiarSemana.className = "btn-editar";
+    btnCopiarSemana.textContent = "📋 Copiar";
+    btnCopiarSemana.title = "Copiar treinos de outra semana";
+    btnCopiarSemana.disabled = !modoEdicao;
+    btnCopiarSemana.onclick = () => copiarSemanaDeTreino(index);
+    btnCopiarSemana.style.cssText = "padding:4px 10px; font-size:11px; margin:0; background:var(--accent,#0891b2);";
+
+    const btnPdfSemana = document.createElement("button");
+    btnPdfSemana.textContent = "📥 PDF";
+    btnPdfSemana.title = "Exportar PDF desta semana";
+    btnPdfSemana.style.cssText = "padding:4px 10px; font-size:11px; margin:0; background:var(--success);";
+    btnPdfSemana.onclick = () => exportarSemanaDireta(index);
+
+    acoesTitulo.appendChild(btnEditar);
+    acoesTitulo.appendChild(btnCopiarSemana);
+    acoesTitulo.appendChild(btnPdfSemana);
+
+    titulo.appendChild(spanTitulo);
+    titulo.appendChild(acoesTitulo);
+    div.appendChild(titulo);
+
+    const botoesRow = document.createElement("div");
+    botoesRow.style.cssText = "display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;";
+
+    const btnAdicionar = document.createElement("button");
+    btnAdicionar.textContent = "➕ Adicionar Treino";
+    btnAdicionar.disabled = !modoEdicao;
+    btnAdicionar.style.cssText = "font-size:13px;";
+    btnAdicionar.onclick = () => adicionarTreino(index);
+
+    const btnBiblioteca = document.createElement("button");
+    btnBiblioteca.textContent = "📚 Da Biblioteca";
+    btnBiblioteca.disabled = !modoEdicao;
+    btnBiblioteca.style.cssText = "font-size:13px; background:#0891b2;";
+    btnBiblioteca.onclick = () => abrirBiblioteca(index);
+
+    botoesRow.appendChild(btnAdicionar);
+    botoesRow.appendChild(btnBiblioteca);
+    div.appendChild(botoesRow);
+
+    const treinos = document.createElement("div");
+    treinos.id = `treinos-${index}`;
+    div.appendChild(treinos);
+
+    container.appendChild(div);
+    renderTreinos(index);
+  });
+}
+
+function editarSemana(index) {
+  const semana = cicloAtual.semanas[index];
+  const opcoesSemanasBase = [
+    "Semana Ordinária - Período Base",
+    "Semana de Choque - Período Base",
+    "Semana de Recuperação - Período Base",
+    "Semana Ordinária - Período Específico",
+    "Semana de Choque - Período Específico",
+    "Semana de Recuperação - Período Específico",
+    "Semana de Polimento",
+    "Semana de Prova",
+  ];
+
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay";
+
+  const conteudo = document.createElement("div");
+  conteudo.className = "modal-box";
+  conteudo.style.textAlign = "left";
+  conteudo.style.maxWidth = "480px";
+
+  const titulo = document.createElement("div");
+  titulo.className = "modal-titulo";
+  titulo.textContent = `📅 Semana ${semana.semana} — Editar Nome`;
+  titulo.style.textAlign = "left";
+  conteudo.appendChild(titulo);
+
+  const labelSelect = document.createElement("div");
+  labelSelect.textContent = "Escolha um tipo predefinido:";
+  labelSelect.style.cssText = "font-size:13px; font-weight:600; color:var(--text-secondary); margin:14px 0 6px;";
+  conteudo.appendChild(labelSelect);
+
+  const select = document.createElement("select");
+  select.className = "modal-select";
+  select.style.marginBottom = "10px";
+
+  const optionVazia = document.createElement("option");
+  optionVazia.value = "";
+  optionVazia.textContent = "Selecione uma opção...";
+  select.appendChild(optionVazia);
+
+  opcoesSemanasBase.forEach(opcao => {
+    const option = document.createElement("option");
+    option.value = opcao;
+    option.textContent = opcao;
+    option.selected = semana.nome === opcao;
+    select.appendChild(option);
+  });
+  conteudo.appendChild(select);
+
+  const labelInput = document.createElement("div");
+  labelInput.textContent = "Ou escreva um nome personalizado:";
+  labelInput.style.cssText = "font-size:13px; font-weight:600; color:var(--text-secondary); margin:0 0 6px;";
+  conteudo.appendChild(labelInput);
+
+  const inputPersonalizado = document.createElement("input");
+  inputPersonalizado.type = "text";
+  inputPersonalizado.placeholder = "Nome personalizado para esta semana";
+  inputPersonalizado.className = "modal-input-texto";
+  inputPersonalizado.value = semana.nome && !opcoesSemanasBase.includes(semana.nome) ? semana.nome : "";
+  conteudo.appendChild(inputPersonalizado);
+
+  const containerBotoes = document.createElement("div");
+  containerBotoes.className = "modal-acoes";
+
+  const btnCancelar = document.createElement("button");
+  btnCancelar.className = "modal-btn modal-btn-cancelar";
+  btnCancelar.textContent = "Cancelar";
+  btnCancelar.onclick = () => modal.remove();
+
+  const btnConfirmar = document.createElement("button");
+  btnConfirmar.className = "modal-btn modal-btn-confirmar";
+  btnConfirmar.textContent = "Salvar";
+  btnConfirmar.onclick = () => {
+    const novoNome = select.value || inputPersonalizado.value.trim();
+    if (novoNome) {
+      semana.nome = novoNome;
+      salvar();
+      renderSemanas();
+    }
+    modal.remove();
+  };
+
+  containerBotoes.appendChild(btnCancelar);
+  containerBotoes.appendChild(btnConfirmar);
+  conteudo.appendChild(containerBotoes);
+
+  modal.appendChild(conteudo);
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  modal.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.remove(); });
+  document.body.appendChild(modal);
+  inputPersonalizado.focus();
+}
+
+/* ================= COPIAR SEMANA ================= */
+
+function copiarSemanaDeTreino(indexDestino) {
+  if (!cicloAtual) return;
+
+  const semanas = cicloAtual.semanas;
+
+  if (semanas.length <= 1) {
+    showToast("Nenhuma outra semana disponível para copiar!", 'aviso');
+    return;
+  }
+
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay";
+
+  const conteudo = document.createElement("div");
+  conteudo.className = "modal-box";
+  conteudo.style.cssText = "max-width:560px; max-height:85vh; overflow-y:auto; text-align:left;";
+
+  const titulo = document.createElement("div");
+  titulo.className = "modal-titulo";
+  titulo.textContent = `📋 Copiar Treinos → Semana ${semanas[indexDestino].semana}`;
+  titulo.style.textAlign = "left";
+  conteudo.appendChild(titulo);
+
+  const inputBusca = document.createElement("input");
+  inputBusca.type = "text";
+  inputBusca.placeholder = "🔍 Buscar semana por nome...";
+  inputBusca.className = "modal-input-texto";
+  inputBusca.style.marginTop = "12px";
+  conteudo.appendChild(inputBusca);
+
+  const containerSemanas = document.createElement("div");
+  containerSemanas.style.cssText = "max-height:320px; overflow-y:auto; margin:4px 0 16px;";
+  conteudo.appendChild(containerSemanas);
+
+  function renderizarLista(termo = "") {
+    containerSemanas.innerHTML = "";
+    semanas.forEach((semana, idx) => {
+      if (idx === indexDestino) return;
+      const nomeSemana = semana.nome || `Semana ${semana.semana}`;
+      if (termo && !nomeSemana.toLowerCase().includes(termo.toLowerCase())) return;
+
+      const item = document.createElement("div");
+      item.className = "semana-opcao-item";
+
+      const textoDiv = document.createElement("div");
+      textoDiv.innerHTML = `<strong style="font-size:13px">Semana ${semana.semana}</strong>
+        <br><span style="font-size:12px; color:var(--text-secondary)">${nomeSemana}</span>
+        <br><span style="font-size:11px; color:var(--text-muted)">${semana.treinos.length} treino(s)</span>`;
+
+      const btnCopiar = document.createElement("button");
+      btnCopiar.className = "btn-editar";
+      btnCopiar.textContent = "✓ Copiar";
+      btnCopiar.style.whiteSpace = "nowrap";
+      btnCopiar.onclick = () => {
+        if (semana.treinos.length === 0) {
+          showToast("Esta semana não tem treinos para copiar!", 'aviso');
+          return;
+        }
+        const treinosCopia = semana.treinos.map(t => ({
+          dia: t.dia, fase: t.fase, tipo: t.tipo,
+          especificacao: t.especificacao, pace: t.pace, obs: t.obs,
+          blocos: t.blocos ? JSON.parse(JSON.stringify(t.blocos)) : []
+        }));
+        cicloAtual.semanas[indexDestino].treinos = treinosCopia;
+        salvar();
+        renderTreinos(indexDestino);
+        modal.remove();
+        showToast(`${treinosCopia.length} treino(s) copiado(s) com sucesso!`, 'sucesso');
+      };
+
+      item.appendChild(textoDiv);
+      item.appendChild(btnCopiar);
+      containerSemanas.appendChild(item);
+    });
+
+    if (!containerSemanas.children.length) {
+      containerSemanas.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:16px;">Nenhuma semana encontrada</p>`;
+    }
+  }
+
+  renderizarLista();
+  inputBusca.oninput = () => renderizarLista(inputBusca.value);
+
+  const containerBotoes = document.createElement("div");
+  containerBotoes.className = "modal-acoes";
+
+  const btnFechar = document.createElement("button");
+  btnFechar.className = "modal-btn modal-btn-cancelar";
+  btnFechar.textContent = "Fechar";
+  btnFechar.onclick = () => modal.remove();
+  containerBotoes.appendChild(btnFechar);
+  conteudo.appendChild(containerBotoes);
+
+  modal.appendChild(conteudo);
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+  modal.addEventListener('keydown', (e) => { if (e.key === 'Escape') modal.remove(); });
+  document.body.appendChild(modal);
+  inputBusca.focus();
+}
+
+/* ================= TREINOS ================= */
+
+function adicionarTreino(semanaIndex) {
+  if (!cicloAtual || !cicloAtual.semanas[semanaIndex]) return;
+  if (!cicloAtual.semanas[semanaIndex].treinos) cicloAtual.semanas[semanaIndex].treinos = [];
+  cicloAtual.semanas[semanaIndex].treinos.push({
+    dia: "",
+    fase: "",
+    tipo: "",
+    especificacao: "",
+    pace: "",
+    obs: "",
+    km: "",
+    blocos: [],
+    zona: "",
+    modalidade: "Corrida"
+  });
+
+  // Limpa filtros para garantir que o treino recém-adicionado apareça
+  filtroAtivo = { fase: "", busca: "" };
+  const selFase = document.getElementById("filtroFase");
+  const inpBusca = document.getElementById("filtroBusca");
+  if (selFase) selFase.value = "";
+  if (inpBusca) inpBusca.value = "";
+
+  salvar();
+  renderTreinos(semanaIndex);
+}
+
+/**
+ * Abre drawer lateral para editar treino completo
+ */
+function editarTreinoAvancado(semanaIndex, treinoIndex) {
+  const treino = cicloAtual.semanas[semanaIndex].treinos[treinoIndex];
+  const nomeSemana = cicloAtual.semanas[semanaIndex].nome || `Semana ${semanaIndex + 1}`;
+
+  // Clonar blocos para edição local (só salva ao confirmar)
+  let blocosTemp = JSON.parse(JSON.stringify(treino.blocos || []));
+
+  const modal = document.createElement("div");
+  modal.className = "modal-overlay drawer-mode";
+
+  const drawer = document.createElement("div");
+  drawer.className = "treino-drawer";
+
+  // ── HEADER ──
+  drawer.innerHTML = `
+    <div class="treino-drawer-header">
+      <div>
+        <span class="treino-drawer-titulo">✏️ Editar Treino</span>
+        <span class="treino-drawer-sub">${nomeSemana}</span>
+      </div>
+      <button class="treino-drawer-close" id="td-close">✕</button>
+    </div>
+
+    <div class="treino-drawer-body">
+
+      <!-- Seção 1: Data e fase -->
+      <div class="form-section">
+        <div class="form-section-title">📋 Informações Básicas</div>
+        <div class="modal-form-grid cols-2">
+          <div class="modal-form-group">
+            <label>Data do Treino</label>
+            <input type="date" id="td-dia" value="${treino.dia || ''}">
+          </div>
+          <div class="modal-form-group">
+            <label>Fase</label>
+            <select id="td-fase">
+              <option value="">Selecione a fase</option>
+              <option value="Base" ${treino.fase === 'Base' ? 'selected' : ''}>Base</option>
+              <option value="Específico" ${treino.fase === 'Específico' ? 'selected' : ''}>Específico</option>
+              <option value="Polimento" ${treino.fase === 'Polimento' ? 'selected' : ''}>Polimento</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-form-grid cols-2">
+          <div class="modal-form-group">
+            <label>Tipo de Treino</label>
+            <select id="td-tipo">
+              <option value="">Selecione o tipo</option>
+              ${['Corrida Leve','Fartlek','Progressivo','Intervalado','Repetições','Bloco','Longão','Rodagem','Ritmado','TRT - Teste de Ritmo Total']
+                .map(t => `<option value="${t}" ${treino.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="modal-form-group">
+            <label>Zona / Pace</label>
+            <select id="td-pace">
+              <option value="">Selecione a zona</option>
+              ${['Z1 - Corrida Leve','Z2 - Corrida Leve/Moderada','Z3 - Corrida Moderada','Z4 - Corrida Moderada/Intensa','Z5 - Corrida Intensa']
+                .map(z => `<option value="${z}" ${treino.pace === z ? 'selected' : ''}>${z}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="modal-form-grid cols-2">
+          <div class="modal-form-group">
+            <label>Volume (km)</label>
+            <input type="number" id="td-km" step="0.1" min="0" placeholder="Ex: 8.5" value="${treino.km || ''}">
+          </div>
+          <div class="modal-form-group" style="justify-content:flex-end;">
+            <label style="opacity:0;">&#8203;</label>
+            <small style="color:var(--text-muted);font-size:11px;padding-top:2px;">Km total do treino para o gráfico de volume semanal</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seção 2: Descrição -->
+      <div class="form-section">
+        <div class="form-section-title">📝 Descrição do Treino</div>
+        <div class="modal-form-group" style="margin-bottom:12px;">
+          <label>Especificação</label>
+          <textarea id="td-espec" rows="6" placeholder="Descreva detalhadamente o treino...
+Ex:
+1. Aquecimento: 10min corrida leve
+2. 6x 1km no pace Z4, rec 90s
+3. Desaquecimento: 5min caminhada">${treino.especificacao || ''}</textarea>
+        </div>
+        <div class="modal-form-group">
+          <label>Observações / Instruções</label>
+          <textarea id="td-obs" rows="3" placeholder="Dicas, pace médio esperado, instruções especiais...">${treino.obs || ''}</textarea>
+        </div>
+      </div>
+
+      <!-- Seção 3: Blocos -->
+      <div class="form-section">
+        <div class="form-section-title">
+          🔗 Blocos do Treino
+          <span class="form-section-badge" id="td-blocos-count">${blocosTemp.length}</span>
+        </div>
+        <div id="td-blocos-container"></div>
+        <button class="btn-add-bloco" id="td-add-bloco">+ Adicionar Bloco</button>
+      </div>
+
+    </div><!-- /.treino-drawer-body -->
+
+    <div class="treino-drawer-footer">
+      <button class="modal-btn modal-btn-cancelar" id="td-cancelar">Cancelar</button>
+      <button class="modal-btn" style="background:#0891b2; color:white;" id="td-biblioteca">📚 Salvar na Biblioteca</button>
+      <button class="modal-btn modal-btn-confirmar" id="td-salvar">💾 Salvar Treino</button>
+    </div>
+  `;
+
+  modal.appendChild(drawer);
+  document.body.appendChild(modal);
+
+  // ── RENDER BLOCOS ──
+  function renderBlocos() {
+    const container = drawer.querySelector('#td-blocos-container');
+    const countEl   = drawer.querySelector('#td-blocos-count');
+    countEl.textContent = blocosTemp.length;
+    container.innerHTML = '';
+
+    if (blocosTemp.length === 0) {
+      container.innerHTML = '<div class="blocos-vazio">Nenhum bloco adicionado ainda</div>';
+      return;
+    }
+
+    blocosTemp.forEach((bloco, idx) => {
+      const blocoDiv = document.createElement('div');
+      blocoDiv.className = 'bloco-item';
+      blocoDiv.innerHTML = `
+        <div class="bloco-item-header">
+          <span class="bloco-item-num">Bloco ${idx + 1}</span>
+          <button class="btn-remover-bloco" data-idx="${idx}">✕ Remover</button>
+        </div>
+        <div class="bloco-item-body">
+          <div class="modal-form-group bloco-full">
+            <label>Descrição</label>
+            <input type="text" placeholder="Ex: Aquecimento, Séries, Desaquecimento" value="${bloco.descricao || ''}">
+          </div>
+          <div class="modal-form-group">
+            <label>Distância (km)</label>
+            <input type="number" step="0.1" min="0" placeholder="0.0" value="${bloco.distancia || ''}">
+          </div>
+          <div class="modal-form-group">
+            <label>Repetições</label>
+            <input type="number" min="1" placeholder="1" value="${bloco.repeticoes || '1'}">
+          </div>
+          <div class="modal-form-group">
+            <label>Pace alvo (MM:SS/km)</label>
+            <input type="text" placeholder="04:30" value="${bloco.pace || ''}">
+          </div>
+          <div class="modal-form-group">
+            <label>Intervalo / Recuperação</label>
+            <input type="text" placeholder="Ex: 90s caminhada" value="${bloco.intervalo || ''}">
+          </div>
+        </div>`;
+
+      const inputs = blocoDiv.querySelectorAll('input');
+      const campos = ['descricao','distancia','repeticoes','pace','intervalo'];
+      inputs.forEach((inp, k) => {
+        inp.addEventListener('input', () => { blocosTemp[idx][campos[k]] = inp.value; });
+      });
+
+      blocoDiv.querySelector('.btn-remover-bloco').onclick = () => {
+        blocosTemp.splice(idx, 1);
+        renderBlocos();
+      };
+
+      container.appendChild(blocoDiv);
+    });
+  }
+
+  renderBlocos();
+
+  // ── EVENTOS ──
+  const fechar = () => {
+    drawer.style.animation = 'none';
+    drawer.style.transform = 'translateX(100%)';
+    drawer.style.opacity   = '0';
+    drawer.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    setTimeout(() => modal.remove(), 200);
+  };
+
+  drawer.querySelector('#td-close').onclick    = fechar;
+  drawer.querySelector('#td-cancelar').onclick = fechar;
+  modal.addEventListener('click', (e) => { if (e.target === modal) fechar(); });
+  modal.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+
+  drawer.querySelector('#td-add-bloco').onclick = () => {
+    blocosTemp.push({ descricao: '', distancia: '', repeticoes: '1', pace: '', intervalo: '' });
+    renderBlocos();
+    // Scroll para o novo bloco
+    const container = drawer.querySelector('#td-blocos-container');
+    container.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  drawer.querySelector('#td-biblioteca').onclick = () => {
+    const template = {
+      id: Date.now(),
+      nome: drawer.querySelector('#td-tipo').value || 'Treino sem nome',
+      tipo: drawer.querySelector('#td-tipo').value,
+      fase: drawer.querySelector('#td-fase').value,
+      pace: drawer.querySelector('#td-pace').value,
+      km: drawer.querySelector('#td-km').value,
+      especificacao: drawer.querySelector('#td-espec').value,
+      obs: drawer.querySelector('#td-obs').value,
+      blocos: JSON.parse(JSON.stringify(blocosTemp))
+    };
+    dados.biblioteca = dados.biblioteca || [];
+    dados.biblioteca.unshift(template);
+    salvar();
+    showToast(`"${template.nome}" salvo na biblioteca!`, 'sucesso');
+  };
+
+  drawer.querySelector('#td-salvar').onclick = () => {
+    treino.dia           = drawer.querySelector('#td-dia').value;
+    treino.fase          = drawer.querySelector('#td-fase').value;
+    treino.tipo          = drawer.querySelector('#td-tipo').value;
+    treino.pace          = drawer.querySelector('#td-pace').value;
+    treino.km            = drawer.querySelector('#td-km').value;
+    treino.especificacao = drawer.querySelector('#td-espec').value;
+    treino.obs           = drawer.querySelector('#td-obs').value;
+    treino.blocos        = blocosTemp;
+    salvar();
+    renderTreinos(semanaIndex);
+    atualizarSumario();
+    renderGraficoVolume();
+    fechar();
+    showToast('Treino salvo com sucesso!', 'sucesso');
+  };
+}
+
+function renderTreinos(semanaIndex) {
+  const div = document.getElementById(`treinos-${semanaIndex}`);
+  if (!div || !cicloAtual) return;
+  div.innerHTML = "";
+
+  const treinos = cicloAtual.semanas[semanaIndex].treinos;
+
+  if (treinos.length === 0) {
+    if (modoEdicao) {
+      div.innerHTML = `<p style="color:var(--text-muted); font-size:13px; padding:8px 0; font-style:italic;">Nenhum treino ainda — clique em ➕ Adicionar Treino para começar.</p>`;
+    } else {
+      div.innerHTML = `<p style="color:var(--text-muted); font-size:13px; padding:8px 0; font-style:italic;">Nenhum treino cadastrado nesta semana.</p>`;
+    }
+    return;
+  }
+
+  let treinosVisiveis = 0;
+  treinos.forEach((treino, i) => {
+    const faseAtiva = filtroAtivo.fase === "" || treino.fase === filtroAtivo.fase;
+    const buscaAtiva = filtroAtivo.busca === "" || (treino.tipo || "").toLowerCase().includes(filtroAtivo.busca.toLowerCase());
+    if (!faseAtiva || !buscaAtiva) return;
+    treinosVisiveis++;
+
+    /* ── MODO EDIÇÃO ── */
+    if (modoEdicao) {
+      const card = document.createElement("div");
+      const vazio = !treino.tipo && !treino.dia && !treino.especificacao;
+      card.className = "treino-edit-card" + (vazio ? " vazio" : "");
+
+      // Coluna de data
+      const dateDiv = document.createElement("div");
+      dateDiv.className = "treino-viz-date";
+      dateDiv.style.flexShrink = "0";
+      if (treino.dia) {
+        const dt = new Date(treino.dia + 'T00:00:00');
+        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+        const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        dateDiv.innerHTML = `
+          <div class="weekday">${dias[dt.getDay()]}</div>
+          <div class="datenum">${String(dt.getDate()).padStart(2,'0')}</div>
+          <div class="month">${meses[dt.getMonth()]}</div>`;
+      } else {
+        dateDiv.className += " no-date";
+        dateDiv.innerHTML = `<div style="font-size:11px;color:var(--text-muted);">sem<br>data</div>`;
+      }
+
+      // Corpo
+      const bodyDiv = document.createElement("div");
+      bodyDiv.className = "treino-viz-body";
+      bodyDiv.style.flex = "1";
+      bodyDiv.style.minWidth = "0";
+
+      const topDiv = document.createElement("div");
+      topDiv.className = "treino-viz-top";
+      if (treino.tipo) {
+        const cfg = getTipoConfig(treino.tipo);
+        const badge = document.createElement("span");
+        badge.className = `treino-tipo-badge ${cfg.cor}`;
+        badge.textContent = `${cfg.icon} ${treino.tipo}`;
+        topDiv.appendChild(badge);
+      }
+      if (treino.fase) {
+        const faseMap = { 'Base': 'fase-base', 'Específico': 'fase-específico', 'Polimento': 'fase-polimento' };
+        const fEl = document.createElement("span");
+        fEl.className = `fase-badge ${faseMap[treino.fase] || ''}`;
+        fEl.textContent = treino.fase;
+        topDiv.appendChild(fEl);
+      }
+      if (!treino.tipo && !treino.fase) {
+        topDiv.innerHTML = `<span style="font-size:12px;color:var(--text-muted);font-style:italic;">Treino sem informações — clique em Editar</span>`;
+      }
+      bodyDiv.appendChild(topDiv);
+
+      if (treino.especificacao) {
+        const desc = document.createElement("div");
+        desc.className = "treino-viz-desc";
+        desc.textContent = treino.especificacao;
+        bodyDiv.appendChild(desc);
+      }
+
+      if (treino.km || treino.pace || treino.obs) {
+        const meta = document.createElement("div");
+        meta.className = "treino-viz-meta";
+        if (treino.km) {
+          const chip = document.createElement("span");
+          chip.className = "treino-meta-chip";
+          chip.textContent = `📏 ${parseFloat(treino.km).toFixed(1)} km`;
+          meta.appendChild(chip);
+        }
+        if (treino.pace) {
+          const chip = document.createElement("span");
+          chip.className = "treino-meta-chip";
+          chip.textContent = `⚡ ${treino.pace}`;
+          meta.appendChild(chip);
+        }
+        if (treino.obs) {
+          const chip = document.createElement("span");
+          chip.className = "treino-meta-chip";
+          chip.textContent = `💡 ${treino.obs}`;
+          meta.appendChild(chip);
+        }
+        bodyDiv.appendChild(meta);
+      }
+
+      // Ações
+      const actions = document.createElement("div");
+      actions.className = "treino-edit-actions";
+
+      const btnEditar = document.createElement("button");
+      btnEditar.className = "btn-edit-treino";
+      btnEditar.title = "Editar treino";
+      btnEditar.textContent = "✏️";
+      btnEditar.onclick = () => editarTreinoAvancado(semanaIndex, i);
+
+      const btnDuplicar = document.createElement("button");
+      btnDuplicar.className = "btn-edit-treino";
+      btnDuplicar.title = "Duplicar treino";
+      btnDuplicar.textContent = "📋";
+      btnDuplicar.onclick = () => duplicarTreino(semanaIndex, i);
+
+      const btnDeletar = document.createElement("button");
+      btnDeletar.className = "btn-edit-treino danger";
+      btnDeletar.title = "Remover treino";
+      btnDeletar.textContent = "🗑️";
+      btnDeletar.onclick = () => deletarTreino(semanaIndex, i);
+
+      actions.appendChild(btnEditar);
+      actions.appendChild(btnDuplicar);
+      actions.appendChild(btnDeletar);
+
+      // Drag & drop
+      card.draggable = true;
+      card.dataset.semanaIndex = semanaIndex;
+      card.dataset.treinoIndex = i;
+
+      card.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify({ si: semanaIndex, ti: i }));
+        setTimeout(() => card.classList.add('dragging'), 0);
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('drag-over'); });
+      card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over');
+        try {
+          const origem = JSON.parse(e.dataTransfer.getData('text/plain'));
+          if (origem.si === semanaIndex && origem.ti !== i) {
+            const treinos = cicloAtual.semanas[semanaIndex].treinos;
+            const [movido] = treinos.splice(origem.ti, 1);
+            treinos.splice(i, 0, movido);
+            salvar();
+            renderTreinos(semanaIndex);
+          }
+        } catch {}
+      });
+
+      // Drag handle — adicionado primeiro para ficar na esquerda
+      const handle = document.createElement("div");
+      handle.className = "drag-handle";
+      handle.textContent = "⠿";
+      handle.title = "Arrastar para reordenar";
+      card.appendChild(handle);
+      card.appendChild(dateDiv);
+      card.appendChild(bodyDiv);
+      card.appendChild(actions);
+      div.appendChild(card);
+
+    } else {
+      /* ── MODO VISUALIZAÇÃO — CARD ── */
+      const card = document.createElement("div");
+      card.className = "treino-viz-card";
+
+      // Coluna de data
+      const dateDiv = document.createElement("div");
+      dateDiv.className = "treino-viz-date";
+      if (treino.dia) {
+        const dt = new Date(treino.dia + 'T00:00:00');
+        const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+        const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        dateDiv.innerHTML = `
+          <div class="weekday">${dias[dt.getDay()]}</div>
+          <div class="datenum">${String(dt.getDate()).padStart(2,'0')}</div>
+          <div class="month">${meses[dt.getMonth()]}</div>`;
+      } else {
+        dateDiv.className += " no-date";
+        dateDiv.textContent = "—";
+      }
+
+      // Corpo do card
+      const bodyDiv = document.createElement("div");
+      bodyDiv.className = "treino-viz-body";
+
+      // Linha do topo: tipo badge + fase badge
+      const topDiv = document.createElement("div");
+      topDiv.className = "treino-viz-top";
+
+      if (treino.tipo) {
+        const cfg = getTipoConfig(treino.tipo);
+        const badge = document.createElement("span");
+        badge.className = `treino-tipo-badge ${cfg.cor}`;
+        badge.textContent = `${cfg.icon} ${treino.tipo}`;
+        topDiv.appendChild(badge);
+      }
+
+      if (treino.fase) {
+        const faseMap = { 'Base': 'fase-base', 'Específico': 'fase-específico', 'Polimento': 'fase-polimento' };
+        const faseEl = document.createElement("span");
+        faseEl.className = `fase-badge ${faseMap[treino.fase] || ''}`;
+        faseEl.textContent = treino.fase;
+        topDiv.appendChild(faseEl);
+      }
+      bodyDiv.appendChild(topDiv);
+
+      // Especificação
+      if (treino.especificacao) {
+        const desc = document.createElement("div");
+        desc.className = "treino-viz-desc";
+        desc.textContent = treino.especificacao;
+        bodyDiv.appendChild(desc);
+      }
+
+      // Chips de km + zona + obs
+      const meta = document.createElement("div");
+      meta.className = "treino-viz-meta";
+      if (treino.km) {
+        const chip = document.createElement("span");
+        chip.className = "treino-meta-chip";
+        chip.textContent = `📏 ${parseFloat(treino.km).toFixed(1)} km`;
+        meta.appendChild(chip);
+      }
+      if (treino.pace) {
+        const chip = document.createElement("span");
+        chip.className = "treino-meta-chip";
+        chip.textContent = `⚡ ${treino.pace}`;
+        meta.appendChild(chip);
+      }
+      if (treino.obs) {
+        const chip = document.createElement("span");
+        chip.className = "treino-meta-chip";
+        chip.textContent = `💡 ${treino.obs}`;
+        meta.appendChild(chip);
+      }
+      if (meta.children.length) bodyDiv.appendChild(meta);
+
+      card.appendChild(dateDiv);
+      card.appendChild(bodyDiv);
+      div.appendChild(card);
+    }
+  });
+
+  if (treinosVisiveis === 0 && treinos.length > 0) {
+    div.innerHTML = `<p style="color:var(--text-muted); font-size:13px; padding:8px 0; font-style:italic;">Nenhum treino corresponde ao filtro ativo.</p>`;
+  }
+}
+
+function atualizarTreino(semanaIndex, treinoIndex, campo, valor) {
+  cicloAtual.semanas[semanaIndex].treinos[treinoIndex][campo] = valor;
+  salvar();
+}
+
+/* ================= DELETAR TREINO ================= */
+
+async function deletarTreino(semanaIndex, treinoIndex) {
+  const confirmado = await showConfirm(
+    'Este treino será removido permanentemente.',
+    'Remover Treino?',
+    'perigo'
+  );
+  if (!confirmado) return;
+  cicloAtual.semanas[semanaIndex].treinos.splice(treinoIndex, 1);
+  salvar();
+  renderTreinos(semanaIndex);
+  showToast('Treino removido.', 'info');
+}
+
+/* ================= DUPLICAR TREINO ================= */
+
+async function duplicarTreino(semanaIndex, treinoIndex) {
+  const semanas = cicloAtual.semanas;
+  const opcoes = semanas.map((s, i) =>
+    `${i === semanaIndex ? '★ ' : ''}Semana ${s.semana}${s.nome ? ': ' + s.nome : ''}`
+  );
+
+  const destino = await showSelecaoModal('📋 Duplicar para qual semana?', opcoes, 'Duplicar');
+  if (destino === null) return;
+
+  const copia = JSON.parse(JSON.stringify(semanas[semanaIndex].treinos[treinoIndex]));
+  semanas[destino].treinos.push(copia);
+  salvar();
+  renderTreinos(destino);
+  if (destino !== semanaIndex) renderTreinos(semanaIndex);
+  atualizarSumario();
+  renderGraficoVolume();
+  showToast('Treino duplicado!', 'sucesso');
+}
+
+/* ================= EXPORTAR SEMANA DIRETA ================= */
+
+function exportarSemanaDireta(semanaIndex) {
+  const semana = cicloAtual.semanas[semanaIndex];
+  const atletaNome = atletaAtual.nome;
+  const cicloNome = cicloAtual.nome;
+
+  let conteudo = `
+    <div style="font-family:Arial,sans-serif; width:100%; padding:20px;">
+      <div style="background:linear-gradient(135deg,#1a56db,#1e3a8a); color:white; padding:18px 24px; border-radius:8px; margin-bottom:20px;">
+        <div style="font-size:11px; opacity:0.8; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Treinador Mateus Lucas</div>
+        <div style="font-size:18px; font-weight:800; margin-bottom:2px;">${atletaNome}</div>
+        <div style="font-size:12px; opacity:0.9;">${cicloNome} · Semana ${semana.semana}${semana.nome ? ': ' + semana.nome : ''}</div>
+        <div style="font-size:11px; opacity:0.7; margin-top:6px;">Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+      </div>
+  `;
+  conteudo += gerarHTMLSemanaPDF(semana, 0);
+  conteudo += `</div>`;
+
+  const element = document.createElement("div");
+  element.innerHTML = conteudo;
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  showPDFLoading(true);
+
+  const opt = {
+    margin: [15, 15, 15, 15],
+    filename: `${atletaNome}_${cicloNome}_Semana${semana.semana}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+
+  carregarHtml2Pdf(() => {
+    html2pdf().set(opt).from(element).save().then(() => {
+      showPDFLoading(false);
+      document.body.removeChild(element);
+      showToast(`PDF Semana ${semana.semana} gerado!`, 'sucesso');
+    }).catch(() => {
+      showPDFLoading(false);
+      if (document.body.contains(element)) document.body.removeChild(element);
+      showToast('Erro ao gerar o PDF.', 'erro');
+    });
+  });
+}
+
+/* ================= GRÁFICO DE VOLUME ================= */
+
+function renderGraficoVolume() {
+  const el = document.getElementById('graficoVolume');
+  if (!el || !cicloAtual) { if (el) el.innerHTML = ''; return; }
+
+  const semanas = cicloAtual.semanas;
+  const dadosKm = semanas.map(s => {
+    let km = 0;
+    s.treinos.forEach(t => {
+      const kmM = parseFloat(t.km) || 0;
+      const kmB = (t.blocos && t.blocos.length) ? calcularDistanciaTotalTreino(t.blocos) : 0;
+      km += kmM || kmB;
+    });
+    return { label: `S${s.semana}`, nome: s.nome || '', km };
+  });
+
+  const temDados = dadosKm.some(d => d.km > 0);
+  const maxKm = Math.max(...dadosKm.map(d => d.km), 1);
+  const maxH = 100;
+
+  el.innerHTML = `
+    <div class="grafico-volume-section">
+      <div class="grafico-titulo">
+        <span>📊 Volume por Semana</span>
+        <span class="grafico-titulo-sub">${temDados ? 'em km — preencha o campo Volume (km) no treino' : 'Preencha o campo Volume (km) nos treinos para visualizar'}</span>
+      </div>
+      <div class="grafico-barras" id="grafico-barras-inner"></div>
+    </div>
+  `;
+
+  const barrasEl = el.querySelector('#grafico-barras-inner');
+  dadosKm.forEach(d => {
+    const h = d.km > 0 ? Math.max(Math.round((d.km / maxKm) * maxH), 6) : 4;
+    const col = document.createElement('div');
+    col.className = 'grafico-barra-col';
+    col.title = `${d.label}${d.nome ? ': ' + d.nome : ''} — ${d.km.toFixed(1)} km`;
+    col.innerHTML = `
+      <div class="grafico-barra-valor">${d.km > 0 ? d.km.toFixed(1) : ''}</div>
+      <div class="grafico-barra-fill${d.km === 0 ? ' sem-dados' : ''}" style="height:${h}px;"></div>
+      <div class="grafico-barra-label">${d.label}${d.nome ? '\n' + d.nome.substring(0, 8) : ''}</div>
+    `;
+    barrasEl.appendChild(col);
+  });
+}
+
+/* ================= HISTÓRICO DE TESTES ================= */
+
+function renderHistoricoPaces() {
+  const container = document.getElementById('historicoPaces');
+  if (!container) return;
+
+  const historico = dados.historicoPaces || [];
+  if (historico.length === 0) { container.innerHTML = ''; return; }
+
+  container.innerHTML = `
+    <div class="historico-paces">
+      <div class="historico-paces-titulo">📈 Histórico de Testes (3km)</div>
+      <div class="historico-paces-list">
+        ${historico.map((entry, i) => `
+          <div class="historico-pace-item${i === 0 ? ' atual' : ''}">
+            <span class="historico-pace-date">${entry.data}</span>
+            <span class="historico-pace-value">⏱ ${entry.pace}/km</span>
+            ${i === 0 ? '<span class="historico-pace-badge">Atual</span>' : ''}
+            <button class="btn-historico-del" onclick="deletarHistoricoPace(${i})" title="Remover">✕</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function deletarHistoricoPace(index) {
+  dados.historicoPaces.splice(index, 1);
+  salvar();
+  renderHistoricoPaces();
+  if (index === 0) {
+    if (dados.historicoPaces.length > 0) {
+      const atual = dados.historicoPaces[0];
+      zonasCalculadas = calcularZonas(atual.paceSegundos);
+      dados.zonas = { paceTeste3km: atual.pace, paceSegundos: atual.paceSegundos, zonas: zonasCalculadas };
+      document.getElementById("paceTeste5km").value = atual.pace;
+      exibirZonasNaInterface();
+      salvar();
+    } else {
+      dados.zonas = null;
+      zonasCalculadas = null;
+      document.getElementById("paceTeste5km").value = '';
+      document.getElementById("containerZonas").innerHTML = '';
+      salvar();
+    }
+  }
+}
+
+/* ================= PROVA ALVO ================= */
+
+async function editarProvaAlvo() {
+  if (!cicloAtual) return;
+  const prova = cicloAtual.prova || {};
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px; width:92%;">
+      <div class="modal-titulo">🎯 Prova Alvo</div>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:14px;">
+        <div class="modal-form-group">
+          <label style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px; display:block;">Nome da Prova</label>
+          <input type="text" id="pa-nome" placeholder="Ex: Meia Maratona de SP" value="${prova.nome || ''}" style="margin:0; width:100%;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="modal-form-group">
+            <label style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px; display:block;">Data</label>
+            <input type="date" id="pa-data" value="${prova.data || ''}" style="margin:0; width:100%;">
+          </div>
+          <div class="modal-form-group">
+            <label style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px; display:block;">Distância</label>
+            <select id="pa-dist" style="margin:0; width:100%;">
+              <option value="">Selecionar</option>
+              ${['5km','10km','15km','21km (Meia)','42km (Maratona)','Outra'].map(d =>
+                `<option value="${d}" ${prova.distancia === d ? 'selected' : ''}>${d}</option>`
+              ).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-acoes" style="margin-top:20px;">
+        <button class="modal-btn modal-btn-cancelar" id="pa-cancelar">Cancelar</button>
+        ${prova.nome ? `<button class="modal-btn" style="background:#dc2626;color:white;" id="pa-limpar">🗑️ Remover</button>` : ''}
+        <button class="modal-btn modal-btn-confirmar" id="pa-salvar">Salvar</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  overlay.querySelector('#pa-nome').focus();
+
+  const fechar = () => overlay.remove();
+  overlay.querySelector('#pa-cancelar').onclick = fechar;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+  overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+
+  const btnLimpar = overlay.querySelector('#pa-limpar');
+  if (btnLimpar) btnLimpar.onclick = () => {
+    cicloAtual.prova = null;
+    salvar();
+    renderProvaAlvo();
+    renderCiclos();
+    fechar();
+    showToast('Prova alvo removida.', 'info');
+  };
+
+  overlay.querySelector('#pa-salvar').onclick = () => {
+    const nome = overlay.querySelector('#pa-nome').value.trim();
+    if (!nome) { overlay.querySelector('#pa-nome').focus(); return; }
+    cicloAtual.prova = {
+      nome,
+      data: overlay.querySelector('#pa-data').value,
+      distancia: overlay.querySelector('#pa-dist').value
+    };
+    salvar();
+    renderProvaAlvo();
+    renderCiclos();
+    fechar();
+    showToast(`Prova alvo definida: ${nome}`, 'sucesso');
+  };
+}
+
+function renderProvaAlvo() {
+  const el = document.getElementById('provaAlvo');
+  if (!el || !cicloAtual) return;
+
+  if (!cicloAtual.prova || !cicloAtual.prova.nome) {
+    el.innerHTML = '';
+    return;
+  }
+
+  const prova = cicloAtual.prova;
+  let countdown = '';
+  let diasTexto = '';
+  if (prova.data) {
+    const hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    const dataProva = new Date(prova.data + 'T00:00:00');
+    const diff = Math.ceil((dataProva - hoje) / (1000 * 60 * 60 * 24));
+    if (diff > 0) {
+      countdown = `<div class="prova-countdown"><div class="prova-countdown-num">${diff}</div><div class="prova-countdown-label">dias</div></div>`;
+    } else if (diff === 0) {
+      countdown = `<div class="prova-countdown"><div class="prova-countdown-num" style="color:#dc2626;">HOJE</div></div>`;
+    } else {
+      countdown = `<div class="prova-countdown"><div class="prova-countdown-num" style="color:var(--text-muted); font-size:14px;">Realizada</div></div>`;
+    }
+    diasTexto = new Date(prova.data + 'T00:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  }
+
+  el.innerHTML = `
+    <div class="prova-alvo-banner">
+      <div style="font-size:22px;">🎯</div>
+      <div class="prova-alvo-info">
+        <div class="prova-alvo-nome">${sanitizeHTML(prova.nome)}</div>
+        <div class="prova-alvo-detalhe">${[sanitizeHTML(prova.distancia), diasTexto].filter(Boolean).join(' · ')}</div>
+      </div>
+      ${countdown}
+      <button onclick="editarProvaAlvo()" style="background:transparent; border:1px solid rgba(251,191,36,0.5); color:#92400e; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-family:inherit; font-weight:600;">✏️ Editar</button>
+    </div>`;
+}
+
+/* ================= NOTAS DO ATLETA ================= */
+
+function abrirNotasAtleta(atletaId) {
+  const atleta = dados.atletas.find(a => a.id === atletaId);
+  if (!atleta) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.style.cssText = 'align-items:flex-start; justify-content:flex-end; padding:0;';
+
+  const drawer = document.createElement('div');
+  drawer.className = 'notas-drawer';
+  drawer.innerHTML = `
+    <div class="notas-header">
+      <div>
+        <div style="font-size:15px; font-weight:700;">📋 Notas — ${sanitizeHTML(atleta.nome)}</div>
+        <div style="font-size:11px; opacity:0.75; margin-top:2px;">Histórico, lesões, objetivos, características</div>
+      </div>
+      <button class="treino-drawer-close" id="notas-close">✕</button>
+    </div>
+    <div class="notas-body">
+      <small style="color:var(--text-muted); font-size:11.5px;">Use este espaço para anotar qualquer informação relevante sobre o atleta.</small>
+      <textarea class="notas-textarea" id="notas-textarea" placeholder="Ex:
+• PRs: 5km 22min, 10km 48min
+• Lesão no joelho direito em 2024 — evitar impacto excessivo
+• Treina 5x por semana, prefere manhãs
+• Objetivo: primeira meia maratona em 2025">${atleta.notas || ''}</textarea>
+    </div>
+    <div class="notas-footer">
+      <button class="modal-btn modal-btn-cancelar" id="notas-cancelar">Cancelar</button>
+      <button class="modal-btn modal-btn-confirmar" id="notas-salvar">💾 Salvar Notas</button>
+    </div>`;
+
+  overlay.appendChild(drawer);
+  document.body.appendChild(overlay);
+  drawer.querySelector('#notas-textarea').focus();
+
+  const fechar = () => {
+    drawer.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    drawer.style.transform = 'translateX(100%)';
+    drawer.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 200);
+  };
+
+  drawer.querySelector('#notas-close').onclick = fechar;
+  drawer.querySelector('#notas-cancelar').onclick = fechar;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+  overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+
+  drawer.querySelector('#notas-salvar').onclick = () => {
+    atleta.notas = drawer.querySelector('#notas-textarea').value;
+    salvar();
+    renderAtletas();
+    fechar();
+    showToast('Notas salvas!', 'sucesso');
+  };
+}
+
+/* ================= CALENDÁRIO ================= */
+
+function toggleCalendario() {
+  modoCalendario = !modoCalendario;
+  const btn = document.getElementById('btnCalendario');
+  if (btn) {
+    btn.classList.toggle('ativo', modoCalendario);
+    btn.textContent = modoCalendario ? '📋 Lista' : '📆 Calendário';
+  }
+  renderSemanas();
+  if (!modoCalendario) {
+    renderGraficoVolume();
+  } else {
+    document.getElementById('graficoVolume').innerHTML = '';
+  }
+}
+
+function renderCalendario() {
+  const container = document.getElementById('semanas');
+  container.innerHTML = '';
+
+  const dias = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+  const wrap = document.createElement('div');
+  wrap.className = 'cal-grid';
+
+  const table = document.createElement('table');
+  table.className = 'cal-table';
+
+  // Header row
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.className = 'cal-header-row';
+  const thLabel = document.createElement('th');
+  thLabel.textContent = 'Semana';
+  headerRow.appendChild(thLabel);
+  dias.forEach(d => {
+    const th = document.createElement('th');
+    th.textContent = d;
+    headerRow.appendChild(th);
+  });
+  const thSemData = document.createElement('th');
+  thSemData.textContent = '∗';
+  thSemData.title = 'Treinos sem data';
+  headerRow.appendChild(thSemData);
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement('tbody');
+
+  cicloAtual.semanas.forEach((semana, sIdx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'cal-semana-row';
+
+    // Label cell
+    const tdLabel = document.createElement('td');
+    tdLabel.className = 'cal-semana-label';
+    tdLabel.innerHTML = `
+      <div class="cal-semana-nome">S${semana.semana}</div>
+      ${semana.nome ? `<span class="cal-semana-sub" title="${semana.nome}">${semana.nome}</span>` : ''}`;
+    tr.appendChild(tdLabel);
+
+    // Group trainings by weekday (0=Sun,1=Mon,...,6=Sat) → remap to Mon=0..Sun=6
+    const porDia = Array.from({length: 7}, () => []);
+    const semData = [];
+    semana.treinos.forEach(t => {
+      if (t.dia) {
+        const dt = new Date(t.dia + 'T00:00:00');
+        const dow = dt.getDay(); // 0=Sun
+        const colIdx = dow === 0 ? 6 : dow - 1; // Mon=0..Sun=6
+        porDia[colIdx].push(t);
+      } else {
+        semData.push(t);
+      }
+    });
+
+    // Day cells
+    for (let d = 0; d < 7; d++) {
+      const td = document.createElement('td');
+      td.className = 'cal-dia-cell' + (porDia[d].length > 0 ? ' has-treino' : '');
+      porDia[d].forEach(t => {
+        const cfg = getTipoConfig(t.tipo);
+        const mini = document.createElement('div');
+        mini.className = 'cal-treino-mini';
+        mini.innerHTML = `
+          <div class="cal-treino-tipo">${cfg.icon} ${t.tipo || '—'}</div>
+          ${t.km ? `<div class="cal-treino-meta">📏 ${parseFloat(t.km).toFixed(1)}km</div>` : ''}
+          ${t.pace ? `<div class="cal-treino-meta">⚡ ${t.pace.split(' - ')[0]}</div>` : ''}`;
+        td.appendChild(mini);
+      });
+      tr.appendChild(td);
+    }
+
+    // Sem data cell
+    const tdSemData = document.createElement('td');
+    tdSemData.className = 'cal-dia-cell' + (semData.length > 0 ? ' has-treino' : '');
+    semData.forEach(t => {
+      const cfg = getTipoConfig(t.tipo);
+      const mini = document.createElement('div');
+      mini.className = 'cal-treino-mini';
+      mini.innerHTML = `<div class="cal-treino-tipo">${cfg.icon} ${t.tipo || '—'}</div>`;
+      tdSemData.appendChild(mini);
+    });
+    if (semData.length === 0 && semana.treinos.length === 0) {
+      tdSemData.innerHTML = '<div class="cal-semana-nao-datada">vazia</div>';
+    }
+    tr.appendChild(tdSemData);
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  container.appendChild(wrap);
+}
+
+/* ================= BIBLIOTECA DE TREINOS ================= */
+
+function abrirBiblioteca(semanaIndex) {
+  const biblioteca = dados.biblioteca || [];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'biblioteca-overlay';
+
+  const drawer = document.createElement('div');
+  drawer.className = 'biblioteca-drawer';
+
+  drawer.innerHTML = `
+    <div class="biblioteca-header">
+      <div>
+        <div class="biblioteca-titulo">📚 Biblioteca de Treinos</div>
+        <div class="biblioteca-sub">${biblioteca.length} template${biblioteca.length !== 1 ? 's' : ''} salvo${biblioteca.length !== 1 ? 's' : ''}</div>
+      </div>
+      <button class="treino-drawer-close" id="bib-close">✕</button>
+    </div>
+    <div class="biblioteca-body" id="bib-body"></div>`;
+
+  overlay.appendChild(drawer);
+  document.body.appendChild(overlay);
+
+  function renderItems() {
+    const body = drawer.querySelector('#bib-body');
+    const bib = dados.biblioteca || [];
+    if (bib.length === 0) {
+      body.innerHTML = `
+        <div class="biblioteca-vazia">
+          <div class="biblioteca-vazia-icon">📚</div>
+          <div class="biblioteca-vazia-txt">Nenhum template salvo ainda.<br>Abra um treino para editar e clique em<br><strong>"📚 Salvar na Biblioteca"</strong>.</div>
+        </div>`;
+      return;
+    }
+    body.innerHTML = '';
+    bib.forEach((item, idx) => {
+      const el = document.createElement('div');
+      el.className = 'biblioteca-item';
+      const cfg = getTipoConfig(item.tipo);
+      el.innerHTML = `
+        <span style="font-size:20px;">${cfg.icon}</span>
+        <div class="biblioteca-item-info">
+          <div class="biblioteca-item-nome">${item.nome}</div>
+          <div class="biblioteca-item-meta">${[item.fase, item.pace, item.km ? item.km + 'km' : ''].filter(Boolean).join(' · ') || 'Sem detalhes'}</div>
+        </div>
+        <button class="btn-del-biblioteca" data-idx="${idx}" title="Remover da biblioteca">🗑️</button>`;
+
+      el.querySelector('.btn-del-biblioteca').onclick = (e) => {
+        e.stopPropagation();
+        dados.biblioteca.splice(idx, 1);
+        salvar();
+        renderItems();
+      };
+
+      el.addEventListener('click', () => {
+        const copia = JSON.parse(JSON.stringify(item));
+        delete copia.id;
+        cicloAtual.semanas[semanaIndex].treinos.push({
+          dia: '', fase: copia.fase || '', tipo: copia.tipo || '', especificacao: copia.especificacao || '',
+          pace: copia.pace || '', obs: copia.obs || '', km: copia.km || '', blocos: copia.blocos || [], zona: '', modalidade: 'Corrida'
+        });
+        salvar();
+        renderTreinos(semanaIndex);
+        atualizarSumario();
+        renderGraficoVolume();
+        fechar();
+        showToast(`"${item.nome}" inserido na semana!`, 'sucesso');
+      });
+
+      body.appendChild(el);
+    });
+  }
+
+  renderItems();
+
+  const fechar = () => {
+    drawer.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    drawer.style.transform = 'translateX(100%)';
+    drawer.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 200);
+  };
+
+  drawer.querySelector('#bib-close').onclick = fechar;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+  overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+}
+
+/* ================= TEMPLATES DE CICLO ================= */
+
+async function salvarCicloComoTemplate(cicloId) {
+  const ciclo = atletaAtual.ciclos.find(c => c.id === cicloId);
+  if (!ciclo) return;
+
+  const nomeTemplate = await showInputModal('⭐ Salvar como Template', 'Nome do template', ciclo.nome);
+  if (!nomeTemplate) return;
+
+  dados.templatesCiclo = dados.templatesCiclo || [];
+  dados.templatesCiclo.unshift({
+    id: Date.now(),
+    nome: nomeTemplate,
+    criadoEm: new Date().toLocaleDateString('pt-BR'),
+    semanas: JSON.parse(JSON.stringify(ciclo.semanas.map(s => ({
+      ...s,
+      treinos: s.treinos.map(t => ({...t}))
+    }))))
+  });
+  if (dados.templatesCiclo.length > 30) dados.templatesCiclo.pop();
+  salvar();
+  showToast(`Template "${nomeTemplate}" salvo!`, 'sucesso');
+}
+
+async function criarCicloDeTemplate() {
+  if (!atletaAtual) return;
+  const templates = dados.templatesCiclo || [];
+
+  if (templates.length === 0) {
+    showToast('Nenhum template salvo ainda. Salve um ciclo como template primeiro.', 'aviso');
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:440px; width:92%;">
+      <div class="modal-titulo">📋 Criar Ciclo de Template</div>
+      <div style="margin:14px 0;">
+        <label style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; display:block; margin-bottom:6px;">Selecionar Template</label>
+        <select id="tpl-select" style="margin:0; width:100%;">
+          ${templates.map((t, i) => `<option value="${i}">${t.nome} (${t.criadoEm})</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; display:block; margin-bottom:6px;">Nome do Novo Ciclo</label>
+        <input type="text" id="tpl-nome" style="margin:0; width:100%;" placeholder="Nome do ciclo" value="${templates[0]?.nome || ''}">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+          <input type="checkbox" id="tpl-limpar" checked>
+          Limpar datas dos treinos no novo ciclo
+        </label>
+      </div>
+      <div class="modal-acoes">
+        <button class="modal-btn modal-btn-cancelar" id="tpl-cancelar">Cancelar</button>
+        <button class="modal-btn modal-btn-confirmar" id="tpl-criar">Criar Ciclo</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const selTpl = overlay.querySelector('#tpl-select');
+  const inpNome = overlay.querySelector('#tpl-nome');
+
+  selTpl.onchange = () => {
+    const t = templates[parseInt(selTpl.value)];
+    if (t) inpNome.value = t.nome;
+  };
+
+  const fechar = () => overlay.remove();
+  overlay.querySelector('#tpl-cancelar').onclick = fechar;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) fechar(); });
+  overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') fechar(); });
+
+  overlay.querySelector('#tpl-criar').onclick = () => {
+    const tpl = templates[parseInt(selTpl.value)];
+    const nome = inpNome.value.trim();
+    if (!nome) { inpNome.focus(); return; }
+    const limpar = overlay.querySelector('#tpl-limpar').checked;
+
+    const novasSemanas = JSON.parse(JSON.stringify(tpl.semanas));
+    if (limpar) {
+      novasSemanas.forEach(s => s.treinos.forEach(t => { t.dia = ''; }));
+    }
+
+    atletaAtual.ciclos.push({
+      id: Date.now(),
+      nome,
+      prova: null,
+      semanas: novasSemanas
+    });
+    salvar();
+    renderCiclos();
+    fechar();
+    showToast(`Ciclo "${nome}" criado a partir do template!`, 'sucesso');
+  };
+}
+
+/* ================= BACKUP E VERIFICAÇÃO ================= */
+
+function verificarBackup() {
+  const avisoDiv = document.getElementById("avisoBackup");
+  const diasBackupSpan = document.getElementById("diasBackup");
+  
+  if (!dados.ultimoBackup) {
+    avisoDiv.style.display = "block";
+    diasBackupSpan.textContent = "Nenhum backup foi feito! ⚠️ Seus dados podem ser perdidos.";
+  } else {
+    const ultimoBackupDate = new Date(dados.ultimoBackup);
+    const agora = new Date();
+    const diasSemBackup = Math.floor((agora - ultimoBackupDate) / (1000 * 60 * 60 * 24));
+    
+    if (diasSemBackup >= 7) {
+      avisoDiv.style.display = "block";
+      diasBackupSpan.textContent = `Último backup foi há ${diasSemBackup} dias. Faça um backup agora! 💾`;
+    } else if (diasSemBackup > 0) {
+      avisoDiv.style.display = "block";
+      diasBackupSpan.textContent = `Último backup: há ${diasSemBackup} dia(s)`;
+    } else {
+      avisoDiv.style.display = "none";
+    }
+  }
+}
+
+/* ================= EXPORTAR PDF E BACKUP ================= */
+
+async function exportarPDF() {
+  if (!cicloAtual) return;
+  const escolha = await showExportModal();
+  if (escolha === 'completo') {
+    exportarCicloCompleto();
+  } else if (escolha === 'semana') {
+    exportarSemanaEspecifica();
+  }
+}
+
+function exportarCicloCompleto() {
+  if (!cicloAtual) return;
+  
+  const atletaNome = atletaAtual.nome;
+  const cicloNome = cicloAtual.nome;
+  
+  let conteudo = `
+    <div style="font-family: Arial, sans-serif; width: 100%; padding: 20px;">
+      <div style="background:linear-gradient(135deg,#1a56db,#1e3a8a); color:white; padding:20px 24px; border-radius:8px; margin-bottom:24px;">
+        <div style="font-size:11px; opacity:0.8; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Treinador Mateus Lucas</div>
+        <div style="font-size:20px; font-weight:800; margin-bottom:4px;">${atletaNome}</div>
+        <div style="font-size:13px; opacity:0.9;">Ciclo: ${cicloNome}</div>
+        <div style="font-size:11px; opacity:0.7; margin-top:8px;">Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>
+      </div>
+  `;
+  
+  cicloAtual.semanas.forEach((semana, sIndex) => {
+    conteudo += gerarHTMLSemanaPDF(semana, sIndex);
+  });
+  
+  conteudo += `</div>`;
+  
+  const element = document.createElement("div");
+  element.innerHTML = conteudo;
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  
+  const opt = {
+    margin: [15, 15, 15, 15],
+    filename: `${atletaNome}_${cicloNome}_COMPLETO.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+
+  showPDFLoading(true);
+
+  carregarHtml2Pdf(() => {
+    html2pdf().set(opt).from(element).save().then(() => {
+      showPDFLoading(false);
+      document.body.removeChild(element);
+      showToast('PDF do ciclo completo gerado!', 'sucesso');
+    }).catch((err) => {
+      console.error("Erro ao gerar PDF:", err);
+      showPDFLoading(false);
+      if (document.body.contains(element)) document.body.removeChild(element);
+      showToast('Erro ao gerar o PDF. Tente novamente.', 'erro');
+    });
+  });
+}
+
+async function exportarSemanaEspecifica() {
+  if (!cicloAtual || cicloAtual.semanas.length === 0) {
+    showToast('Nenhuma semana disponível!', 'aviso');
+    return;
+  }
+
+  const opcoes = cicloAtual.semanas.map((s) =>
+    `Semana ${s.semana}${s.nome ? ' — ' + s.nome : ''}`
+  );
+
+  const index = await showSelecaoModal('🗓️ Selecionar Semana', opcoes, 'Exportar PDF');
+  if (index === null) return;
+
+  const semana = cicloAtual.semanas[index];
+  const atletaNome = atletaAtual.nome;
+  const cicloNome = cicloAtual.nome;
+
+  let conteudo = `
+    <div style="font-family: Arial, sans-serif; width: 100%; padding: 20px;">
+      <h1 style="text-align: center; color: #333; margin-bottom: 5px;">${atletaNome}</h1>
+      <h2 style="text-align: center; color: #555; margin-bottom: 10px; border-bottom: 2px solid #888; padding-bottom: 10px;">Ciclo: ${cicloNome}</h2>
+  `;
+  conteudo += gerarHTMLSemanaPDF(semana, 0);
+  conteudo += `</div>`;
+
+  const element = document.createElement("div");
+  element.innerHTML = conteudo;
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  showPDFLoading(true);
+
+  const opt = {
+    margin: [15, 15, 15, 15],
+    filename: `${atletaNome}_${cicloNome}_Semana${semana.semana}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+
+  carregarHtml2Pdf(() => {
+    html2pdf().set(opt).from(element).save().then(() => {
+      showPDFLoading(false);
+      document.body.removeChild(element);
+      showToast(`PDF da Semana ${semana.semana} gerado!`, 'sucesso');
+    }).catch((err) => {
+      console.error("Erro ao gerar PDF da semana:", err);
+      showPDFLoading(false);
+      if (document.body.contains(element)) document.body.removeChild(element);
+      showToast('Erro ao gerar o PDF. Tente novamente.', 'erro');
+    });
+  });
+}
+
+function gerarHTMLSemanaPDF(semana, sIndex) {
+  let html = `<div style="margin-bottom:28px; page-break-inside:avoid;">`;
+  html += `<h3 style="color:#1a56db; margin:0 0 12px; padding:10px 14px;
+    background:#eff6ff; border-left:4px solid #1a56db; border-radius:0 6px 6px 0;
+    font-size:13px;">📅 Semana ${semana.semana}${semana.nome ? ': ' + semana.nome : ''}</h3>`;
+
+  if (semana.treinos.length === 0) {
+    html += `<p style="color:#94a3b8; padding:8px 14px; font-size:12px; font-style:italic;">Sem treinos cadastrados</p>`;
+  } else {
+    html += `<table style="width:100%; border-collapse:collapse; font-size:11.5px; font-family:Arial,sans-serif;">`;
+    html += `<thead><tr style="background:#1a56db; color:white;">`;
+    ['Data','Fase','Tipo','Especificação','Zona/Pace','Obs'].forEach(col => {
+      html += `<th style="padding:8px 10px; text-align:left; font-weight:600; white-space:nowrap;">${col}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
+
+    semana.treinos.forEach((treino, tIndex) => {
+      const dataBr = treino.dia ? (() => {
+        const dt = new Date(treino.dia + 'T00:00:00');
+        const dias = ['dom','seg','ter','qua','qui','sex','sab'];
+        return `${dias[dt.getDay()]} ${dt.toLocaleDateString('pt-BR')}`;
+      })() : '—';
+
+      const faseColors = {
+        'Base':       { bg:'#dcfce7', color:'#15803d' },
+        'Específico': { bg:'#fef9c3', color:'#92400e' },
+        'Polimento':  { bg:'#fee2e2', color:'#991b1b' }
+      };
+      const fc = faseColors[treino.fase] || null;
+      const faseBadge = treino.fase && fc
+        ? `<span style="background:${fc.bg}; color:${fc.color}; padding:2px 7px; border-radius:4px; font-weight:700; font-size:10.5px;">${treino.fase}</span>`
+        : (treino.fase || '—');
+
+      const bgRow = tIndex % 2 === 0 ? '#ffffff' : '#f8fafc';
+      html += `<tr style="background:${bgRow}; border-bottom:1px solid #e2e8f0;">`;
+      html += `<td style="padding:8px 10px; font-weight:600; color:#1a56db; white-space:nowrap;">${dataBr}</td>`;
+      html += `<td style="padding:8px 10px;">${faseBadge}</td>`;
+      html += `<td style="padding:8px 10px; font-weight:600;">${treino.tipo || '—'}</td>`;
+      html += `<td style="padding:8px 10px; max-width:200px;">${treino.especificacao || '—'}</td>`;
+      html += `<td style="padding:8px 10px; white-space:nowrap;">${treino.pace || '—'}</td>`;
+      html += `<td style="padding:8px 10px; color:#64748b;">${treino.obs || '—'}</td>`;
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/* ================= DUPLICAR CICLO ================= */
+
+async function duplicarCiclo(id) {
+  const cicloOriginal = atletaAtual.ciclos.find(c => c.id === id);
+
+  if (!cicloOriginal) return;
+
+  const novoNome = await showInputModal("Duplicar Ciclo", "Nome do novo ciclo", cicloOriginal.nome + " (Cópia)");
+
+  if (!novoNome) return;
+  
+  // Criar cópia profunda do ciclo
+  const novoCiclo = JSON.parse(JSON.stringify(cicloOriginal));
+  novoCiclo.id = Date.now();
+  novoCiclo.nome = novoNome;
+  novoCiclo.prova = novoCiclo.prova || null;
+  
+  atletaAtual.ciclos.push(novoCiclo);
+  salvar();
+  renderCiclos();
+}
+
+/* ================= BACKUP/RESTAURAR ================= */
+
+function exportarBackup() {
+  const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+  const nomeArquivo = `backup_treinos_${dataAtual}.json`;
+  
+  dados.ultimoBackup = new Date().toISOString();
+  
+  const jsonString = JSON.stringify(dados, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nomeArquivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  salvar();
+  verificarBackup();
+  
+  showToast(`Backup salvo: ${nomeArquivo}`, 'sucesso');
+}
+
+function importarBackup() {
+  const fileInput = document.getElementById('fileInput');
+  fileInput.click();
+
+  fileInput.onchange = async function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+      try {
+        const conteudoArquivo = JSON.parse(event.target.result);
+
+        if (!conteudoArquivo.atletas || !Array.isArray(conteudoArquivo.atletas)) {
+          showToast('Arquivo inválido! Certifique-se de que é um backup válido.', 'erro');
+          return;
+        }
+
+        const confirmado = await showConfirm(
+          'Todos os dados atuais serão <strong>substituídos</strong> pelo backup selecionado.',
+          'Restaurar Backup?',
+          'atencao'
+        );
+        if (!confirmado) return;
+
+        dados = conteudoArquivo;
+        salvar();
+        atletaAtual = null;
+        cicloAtual = null;
+        document.getElementById("areaCiclos").classList.add("hidden");
+        document.getElementById("areaSemanas").classList.add("hidden");
+        document.getElementById("tituloAtleta").textContent = "";
+        document.getElementById("tituloCiclo").textContent = "";
+        document.getElementById("semanas").innerHTML = "";
+        renderAtletas();
+        carregarZonas();
+        showToast('Backup restaurado com sucesso!', 'sucesso');
+      } catch (error) {
+        showToast('Erro ao ler o arquivo! Use um backup JSON válido.', 'erro');
+        console.error(error);
+      }
+    };
+    
+    reader.readAsText(file);
+    fileInput.value = '';
+  };
+}
+
+/* ================= SUMÁRIO E ESTATÍSTICAS ================= */
+
+function atualizarSumario() {
+  if (!cicloAtual) return;
+
+  let totalTreinos = 0, totalEspecifico = 0, totalPolimento = 0, totalKm = 0;
+
+  cicloAtual.semanas.forEach(semana => {
+    semana.treinos.forEach(treino => {
+      totalTreinos++;
+      if (treino.fase === "Específico") totalEspecifico++;
+      else if (treino.fase === "Polimento") totalPolimento++;
+      const kmManual = parseFloat(treino.km) || 0;
+      const kmBlocos = (treino.blocos && treino.blocos.length) ? calcularDistanciaTotalTreino(treino.blocos) : 0;
+      totalKm += kmManual || kmBlocos;
+    });
+  });
+
+  document.getElementById("totalSemanas").textContent    = cicloAtual.semanas.length;
+  document.getElementById("totalTreinos").textContent    = totalTreinos;
+  document.getElementById("totalEspecifico").textContent = totalEspecifico;
+  document.getElementById("totalPolimento").textContent  = totalPolimento;
+  const kmEl = document.getElementById("totalKm");
+  if (kmEl) kmEl.textContent = totalKm > 0 ? `${totalKm.toFixed(1)}` : '—';
+}
+
+/* ================= FILTROS ================= */
+
+function aplicarFiltros() {
+  filtroAtivo.fase = document.getElementById("filtroFase").value;
+  filtroAtivo.busca = document.getElementById("filtroBusca").value;
+  
+  if (cicloAtual) {
+    cicloAtual.semanas.forEach((semana, index) => {
+      renderTreinos(index);
+    });
+  }
+}
+
+/* ================= LAZY LOAD HTML2PDF ================= */
+function carregarHtml2Pdf(callback) {
+  if (window.html2pdf) { callback(); return; }
+  showToast('Carregando biblioteca de PDF...', 'info');
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+  script.onload = () => { showToast('Pronto!', 'sucesso'); callback(); };
+  script.onerror = () => showToast('Erro ao carregar biblioteca de PDF. Verifique sua conexão.', 'erro');
+  document.head.appendChild(script);
+}
+
+/* ================= DARK MODE ================= */
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('plannerTema', isDark ? 'dark' : 'light');
+  const btn = document.getElementById('btnDarkToggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
+
+function carregarTema() {
+  const tema = localStorage.getItem('plannerTema');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (tema === 'dark' || (!tema && prefersDark)) {
+    document.body.classList.add('dark');
+    const btn = document.getElementById('btnDarkToggle');
+    if (btn) btn.textContent = '☀️';
+  }
+}
+
+/* ================= INIT ================= */
+
+dados.biblioteca = dados.biblioteca || [];
+dados.templatesCiclo = dados.templatesCiclo || [];
+carregarTema();
+carregarZonas();
+renderAtletas();
+verificarBackup();
+document.body.classList.add("modo-visualization");
+
+// Keyboard shortcuts para Undo/Redo
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') { e.preventDefault(); desfazer(); }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); refazer(); }
+});

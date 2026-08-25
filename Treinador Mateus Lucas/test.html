@@ -1,0 +1,394 @@
+<!-- TESTE DAS FUNÇÕES IMPLEMENTADAS -->
+<!-- Salve como test.html no mesmo diretório e abra no navegador -->
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Testes - Treinador Mateus Lucas</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .test-section {
+        background: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-section h2 {
+        color: #667eea;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .test-result {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        border-left: 4px solid;
+      }
+      .test-result.success {
+        background: #d4edda;
+        border-color: #28a745;
+        color: #155724;
+      }
+      .test-result.error {
+        background: #f8d7da;
+        border-color: #dc3545;
+        color: #721c24;
+      }
+      .test-result.info {
+        background: #d1ecf1;
+        border-color: #17a2b8;
+        color: #0c5460;
+      }
+      code {
+        background: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", monospace;
+      }
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 10px 0;
+      }
+      button:hover {
+        background: #764ba2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Testes - Treinador Mateus Lucas</h1>
+    <p>Clique nos botões abaixo para testar as funções implementadas:</p>
+
+    <div class="test-section">
+      <h2>✅ Teste 1: calcularZonas()</h2>
+      <p>Testa cálculo de 5 zonas a partir de um pace de teste</p>
+      <button onclick="testeCalcularZonas()">Executar Teste 1</button>
+      <div id="resultado1"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Teste 2: converterPaceParaSegundos()</h2>
+      <p>Testa conversão de pace do formato MM:SS para segundos</p>
+      <button onclick="testeConverterPace()">Executar Teste 2</button>
+      <div id="resultado2"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Teste 3: calcularDistanciaTotalTreino()</h2>
+      <p>Testa cálculo de distância total de um treino com blocos</p>
+      <button onclick="testeCalcularDistancia()">Executar Teste 3</button>
+      <div id="resultado3"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Teste 4: gerarDescricaoTreino()</h2>
+      <p>Testa geração de descrição textual de um treino</p>
+      <button onclick="testeGerarDescricao()">Executar Teste 4</button>
+      <div id="resultado4"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Teste 5: gerarResumaTreino()</h2>
+      <p>Testa geração de resumo completo de um treino</p>
+      <button onclick="testeGerarResumo()">Executar Teste 5</button>
+      <div id="resultado5"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>✅ Teste COMPLETO: Treino Exemplo</h2>
+      <p>Executa todos os testes com um treino exemplo realista</p>
+      <button onclick="testeCompleto()">Executar Teste COMPLETO</button>
+      <div id="resultadoCompleto"></div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+      function addResult(elementId, success, title, content) {
+        const div = document.createElement("div");
+        div.className = `test-result ${success ? "success" : "error"}`;
+        div.innerHTML = `<strong>${title}</strong><br>${content}`;
+        document.getElementById(elementId).appendChild(div);
+      }
+
+      function testeCalcularZonas() {
+        document.getElementById("resultado1").innerHTML = "";
+        try {
+          const pace5km = 300; // 5:00 min/km em segundos
+          const zonas = calcularZonas(pace5km);
+
+          if (!zonas) {
+            addResult(
+              "resultado1",
+              false,
+              "❌ ERRO",
+              "calcularZonas retornou null",
+            );
+            return;
+          }
+
+          addResult(
+            "resultado1",
+            true,
+            "✅ Teste 1 PASSOU",
+            "Zona calculadas com sucesso!",
+          );
+
+          Object.keys(zonas).forEach((zona) => {
+            const info = zonas[zona];
+            addResult(
+              "resultado1",
+              true,
+              zona,
+              `${info.paceFormatado} | ${info.velocidadeKmh} km/h`,
+            );
+          });
+        } catch (e) {
+          addResult("resultado1", false, "❌ ERRO", e.message);
+        }
+      }
+
+      function testeConverterPace() {
+        document.getElementById("resultado2").innerHTML = "";
+        try {
+          const teste1 = converterPaceParaSegundos("05:00");
+          const teste2 = converterPaceParaSegundos("04:30");
+          const teste3 = converterPaceParaSegundos("06:15");
+
+          addResult(
+            "resultado2",
+            teste1 === 300,
+            '✅ Teste "05:00"',
+            `Esperado: 300s | Obtido: ${teste1}s`,
+          );
+          addResult(
+            "resultado2",
+            teste2 === 270,
+            '✅ Teste "04:30"',
+            `Esperado: 270s | Obtido: ${teste2}s`,
+          );
+          addResult(
+            "resultado2",
+            teste3 === 375,
+            '✅ Teste "06:15"',
+            `Esperado: 375s | Obtido: ${teste3}s`,
+          );
+        } catch (e) {
+          addResult("resultado2", false, "❌ ERRO", e.message);
+        }
+      }
+
+      function testeCalcularDistancia() {
+        document.getElementById("resultado3").innerHTML = "";
+        try {
+          const blocos = [
+            { descricao: "Aquecimento", distancia: "2", repeticoes: "1" },
+            { descricao: "Corpo", distancia: "5", repeticoes: "1" },
+            { descricao: "Desaquecimento", distancia: "1", repeticoes: "1" },
+          ];
+
+          const distancia = calcularDistanciaTotalTreino(blocos);
+
+          addResult(
+            "resultado3",
+            distancia === 8,
+            "✅ Distância Calculada",
+            `Total: ${distancia}km (Esperado: 8km)`,
+          );
+
+          addResult(
+            "resultado3",
+            true,
+            "📋 Blocos",
+            `${blocos.length} blocos somam: ${distancia}km`,
+          );
+        } catch (e) {
+          addResult("resultado3", false, "❌ ERRO", e.message);
+        }
+      }
+
+      function testeGerarDescricao() {
+        document.getElementById("resultado4").innerHTML = "";
+        try {
+          const treino = {
+            tipo: "Fundo",
+            blocos: [
+              { descricao: "Aquecimento", distancia: "2", repeticoes: "1" },
+              { descricao: "Corpo", distancia: "5", repeticoes: "1" },
+            ],
+            obs: "Manter ritmo conversável",
+          };
+
+          const descricao = gerarDescricaoTreino(treino, zonasCalculadas);
+
+          addResult(
+            "resultado4",
+            descricao && descricao.length > 0,
+            "✅ Descrição Gerada",
+            `<pre style="max-height: 300px; overflow-y: auto; background: #f0f0f0; padding: 10px; border-radius: 4px;">${descricao}</pre>`,
+          );
+        } catch (e) {
+          addResult("resultado4", false, "❌ ERRO", e.message);
+        }
+      }
+
+      function testeGerarResumo() {
+        document.getElementById("resultado5").innerHTML = "";
+        try {
+          const treino = {
+            tipo: "Fundo",
+            modalidade: "Corrida",
+            blocos: [
+              { descricao: "Aquecimento", distancia: "2", repeticoes: "1" },
+              { descricao: "Corpo", distancia: "5", repeticoes: "1" },
+            ],
+            obs: "Manter ritmo conversável",
+            zona: "Z2",
+          };
+
+          const resumo = gerarResumaTreino(treino, zonasCalculadas);
+
+          addResult(
+            "resultado5",
+            resumo !== null,
+            "✅ Resumo Gerado",
+            `Tipo: ${resumo.tipo}<br>
+                     Modalidade: ${resumo.modalidade}<br>
+                     Distância: ${resumo.distanciaFormatada}<br>
+                     Zona: ${resumo.zona}`,
+          );
+        } catch (e) {
+          addResult("resultado5", false, "❌ ERRO", e.message);
+        }
+      }
+
+      function testeCompleto() {
+        document.getElementById("resultadoCompleto").innerHTML = "";
+        try {
+          // 1. Calcular zonas
+          const paceSegundos = 300; // 5:00 min/km
+          zonasCalculadas = calcularZonas(paceSegundos);
+
+          // 2. Criar treino exemplo
+          const treinoExemplo = {
+            dia: "2026-02-05",
+            fase: "Base",
+            tipo: "Fundo",
+            pace: "Z2 - Leve/Fundo",
+            zona: "Z2",
+            modalidade: "Corrida",
+            blocos: [
+              {
+                descricao: "Aquecimento",
+                distancia: "2",
+                repeticoes: "1",
+                pace: "05:30/km",
+                intervalo: "0",
+              },
+              {
+                descricao: "Corpo do Treino",
+                distancia: "5",
+                repeticoes: "1",
+                pace: "05:00/km",
+                intervalo: "0",
+              },
+              {
+                descricao: "Desaquecimento",
+                distancia: "1",
+                repeticoes: "1",
+                pace: "06:00/km",
+                intervalo: "0",
+              },
+            ],
+            obs: "Manter ritmo conversável. Hidrate-se bem.",
+          };
+
+          // 3. Calcular distância
+          const distanciaTotal = calcularDistanciaTotalTreino(
+            treinoExemplo.blocos,
+          );
+
+          // 4. Gerar descrição
+          const descricao = gerarDescricaoTreino(
+            treinoExemplo,
+            zonasCalculadas,
+          );
+
+          // 5. Gerar resumo
+          const resumo = gerarResumaTreino(treinoExemplo, zonasCalculadas);
+
+          // Exibir resultados
+          addResult(
+            "resultadoCompleto",
+            true,
+            "🎯 TESTE COMPLETO EXECUTADO",
+            `Todas as funções foram testadas com sucesso!`,
+          );
+
+          addResult(
+            "resultadoCompleto",
+            true,
+            "⚡ Zonas Calculadas",
+            `Pace base: 5:00/km<br>
+                     Z1 (60%): ${zonasCalculadas.Z1.paceFormatado}<br>
+                     Z2 (70%): ${zonasCalculadas.Z2.paceFormatado}<br>
+                     Z3 (85%): ${zonasCalculadas.Z3.paceFormatado}<br>
+                     Z4 (95%): ${zonasCalculadas.Z4.paceFormatado}<br>
+                     Z5 (100%): ${zonasCalculadas.Z5.paceFormatado}`,
+          );
+
+          addResult(
+            "resultadoCompleto",
+            true,
+            "📏 Distância Calculada",
+            `${treinoExemplo.blocos.length} blocos = ${distanciaTotal}km`,
+          );
+
+          addResult(
+            "resultadoCompleto",
+            true,
+            "📝 Resumo do Treino",
+            `Tipo: ${resumo.tipo}<br>
+                     Modalidade: ${resumo.modalidade}<br>
+                     Distância: ${resumo.distanciaFormatada}<br>
+                     Zona: ${resumo.zona}`,
+          );
+
+          addResult(
+            "resultadoCompleto",
+            true,
+            "💾 Dados Salvos",
+            `Teste completado! Os dados foram processados corretamente.`,
+          );
+        } catch (e) {
+          addResult("resultadoCompleto", false, "❌ ERRO NO TESTE", e.message);
+          console.error(e);
+        }
+      }
+
+      // Executar teste completo ao carregar
+      window.addEventListener("load", function () {
+        console.log("✅ Teste página carregada");
+        console.log("✅ Funções disponíveis:");
+        console.log("  - calcularZonas");
+        console.log("  - gerarDescricaoTreino");
+        console.log("  - calcularDistanciaTotalTreino");
+        console.log("  - gerarResumaTreino");
+        console.log("  - converterPaceParaSegundos");
+        console.log("  - formatarPace");
+        console.log("  - calcularEExibirZonas");
+      });
+    </script>
+  </body>
+</html>

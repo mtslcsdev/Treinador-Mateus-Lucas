@@ -1,0 +1,1222 @@
+{
+  "atletas": [
+    {
+      "id": 1768946735569,
+      "nome": "Allan e Pedro Henrique",
+      "ciclos": [
+        {
+          "id": 1768950965780,
+          "nome": "Ciclo 21km - Maratona Piaui Crono",
+          "semanas": [
+            {
+              "semana": 1,
+              "nome": "Semana Ordinária - Periodo Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "8KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "10KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "14KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 2,
+              "nome": "Semana Ordinária - Periodo Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "8KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "10KM CONTINUO",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "RODAGEM"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "14KM CONTINUO",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "LONGÃO"
+                }
+              ]
+            },
+            {
+              "semana": 3,
+              "nome": "Semana de Choque - Periodo Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "8KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "10KM RITMADO",
+                  "pace": "Z3 - Corrida Moderada",
+                  "obs": "RITMADO"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "16kM CONTÍNUO",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "LONGÃO"
+                }
+              ]
+            },
+            {
+              "semana": 4,
+              "nome": "Semana de Recuperação - Período Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "Corrida Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km",
+                  "especificacao": "7KM CONTÍNUO"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "8KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "Longão",
+                  "especificacao": "12KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 5,
+              "nome": "Semana Ordinária - Periodo Específico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Rodagem",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "5:10 a 4:50 min/km",
+                  "especificacao": "8KM CONTÍNUO"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Rodagem",
+                  "especificacao": "10KM CONTÍNUO",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "5:10 a 4:50 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "14KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 6,
+              "nome": "Semana Ordinária - Periodo Específico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "especificacao": "8KM CONTÍNUOS"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Rodagem",
+                  "especificacao": "10KM CONTÍNUOS",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "5:10 a 4:50 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "16KM CONTÍNUOS",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 7,
+              "nome": "Semana de Choque - Periodo Especifico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Rodagem",
+                  "pace": "Z2 - Corrida Leve/Moderada",
+                  "obs": "5:10 a 4:50 min/km",
+                  "especificacao": "10KM CONTÍNUOS"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Rodagem",
+                  "especificacao": "12KM CONTÍNUOS",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "18KM CONTÍNUOS",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 8,
+              "nome": "Semana de Prova",
+              "treinos": [
+                {
+                  "dia": "2026-03-09",
+                  "fase": "Polimento",
+                  "tipo": "Corrida Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "especificacao": "6KM CONTÍNUOS"
+                },
+                {
+                  "dia": "2026-03-11",
+                  "fase": "Polimento",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "5KM CONTÍNUOS",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "5:30 a 5:10 min/km/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 9,
+              "nome": ".",
+              "treinos": []
+            },
+            {
+              "semana": 10,
+              "nome": ".",
+              "treinos": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1768957400480,
+      "nome": "Jessyka Carvalho",
+      "ciclos": [
+        {
+          "id": 1768957563075,
+          "nome": "5km - Live XP Run",
+          "semanas": [
+            {
+              "semana": 1,
+              "nome": "Semana Ordinária - Período Base",
+              "treinos": [
+                {
+                  "dia": "2026-01-13",
+                  "fase": "Base",
+                  "tipo": "2x: 12' Corrida por 2' camiinhando",
+                  "pace": "Leve",
+                  "obs": ""
+                },
+                {
+                  "dia": "2026-01-15",
+                  "fase": "Base",
+                  "tipo": "4km Intercalando 500m corrida moderada por 500m correndo muito leve",
+                  "pace": "Moderado/Intenso",
+                  "obs": ""
+                },
+                {
+                  "dia": "2026-01-17",
+                  "fase": "Base",
+                  "tipo": "2x: 15' Corrida por 2' Caminhando",
+                  "pace": "Leve/Moderado",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "",
+                  "especificacao": "",
+                  "pace": "",
+                  "obs": "",
+                  "km": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "",
+                  "especificacao": "",
+                  "pace": "",
+                  "obs": "",
+                  "km": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "",
+                  "especificacao": "",
+                  "pace": "",
+                  "obs": "",
+                  "km": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 2,
+              "nome": "Semana Ordinária - Período Base",
+              "treinos": [
+                {
+                  "dia": "2026-01-20",
+                  "fase": "Base",
+                  "tipo": "2x: 12' Corrida por 1' Caminhada",
+                  "pace": "Leve",
+                  "obs": ""
+                },
+                {
+                  "dia": "2026-01-22",
+                  "fase": "Base",
+                  "tipo": "3x: 500m Corrida Moderada por 2' Caminhada",
+                  "pace": "Moderado/Intenso",
+                  "obs": ""
+                },
+                {
+                  "dia": "2026-01-24",
+                  "fase": "Base",
+                  "tipo": "2x: 16' Corrida por 1' Caminhada",
+                  "pace": "Leve/Moderado",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 3,
+              "nome": "Semana de Recuperação - Período Base",
+              "treinos": [
+                {
+                  "dia": "2026-01-27",
+                  "fase": "Base",
+                  "tipo": "Repetir 2x: - 12' Corrida leve por 1' Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "2026-01-29",
+                  "fase": "Base",
+                  "tipo": "Repetir 2x: - 12' Corrida leve por 1' Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "2026-01-31",
+                  "fase": "Base",
+                  "tipo": "Repetir 3x: - 10' Corrida leve por 1' Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "LONGÃO"
+                }
+              ]
+            },
+            {
+              "semana": 4,
+              "nome": "Semana Ordinária - Período Base",
+              "treinos": [
+                {
+                  "dia": "2026-02-03",
+                  "fase": "Base",
+                  "tipo": "Repetir 4x: - 10' Corrida leve por 1' Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "2026-02-05",
+                  "fase": "Base",
+                  "tipo": "Repetir 4x: - 10' Corrida leve por 1' Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "2026-02-07",
+                  "fase": "Base",
+                  "tipo": "Repetir 4x: - 10' Corrida leve por 1' Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                }
+              ]
+            },
+            {
+              "semana": 5,
+              "nome": "Semana Ordinária - Período Específico",
+              "treinos": [
+                {
+                  "dia": "2026-02-10",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "3KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:00 a 8:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-02-12",
+                  "fase": "Específico",
+                  "tipo": "Intervalado",
+                  "especificacao": "- Aquecer por 5 minutos correndo leve\n\n- Repetir 4x: \n1. 500m Corrida Moderada\n2. Caminhar por 2 minutos\n\n- Desaquecer por 5 minutos correndo leve",
+                  "pace": "Z3 - Corrida Moderada",
+                  "obs": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-02-14",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "Repetir por 3x:\n- 2km Contínuo\n- 2min Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:00 a 8:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 6,
+              "nome": "Semana Ordinária - Período Específico",
+              "treinos": [
+                {
+                  "dia": "2026-02-17",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "- 3KM Corrida Contínua\npausa 2 minutos\n- 1KM Corrida Contínua",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-02-19",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "- 3KM Corrida Contínua\npausa 2 minutos\n- 1KM Corrida Contínua",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-02-21",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "Repetir por 3x:\n- 2km Contínuo\n- 2min Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 7,
+              "nome": "",
+              "treinos": [
+                {
+                  "dia": "2026-02-24",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "3KM CONTÍNUOS",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-02-26",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "3KM CONTÍNUOS\n- Caminhar por 2 minutos\n1KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-02-28",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "Repetir por 2x:\n- 3,5km Contínuos\n- 2min Caminhada",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 8,
+              "nome": "Semana da Prova",
+              "treinos": [
+                {
+                  "dia": "2026-03-03",
+                  "fase": "Polimento",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "Repetir por 3x:\n- Correr por 10 minutos\n- Caminhar por 1 minuto ",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-03-05",
+                  "fase": "Polimento",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "Repetir por 3x:\n- Correr por 10 minutos\n- Caminhar por 1 minuto ",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "8:00 a 7:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 1773016953141,
+          "nome": "Treinamentos - Avulso",
+          "semanas": [
+            {
+              "semana": 1,
+              "nome": "Semana Ordinária - Período Base",
+              "treinos": [
+                {
+                  "dia": "2026-03-10",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "CORRER POR 3KM",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-03-12",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "CORRER POR 3,5 KM",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-03-14",
+                  "fase": "",
+                  "tipo": "TRT - Teste de Ritmo Total",
+                  "especificacao": "Teste de 12 Minutos:\n\nObjetivo: avaliar o condicionamento aeróbio atual, definir as zonas de treino e ajustar ritmos de intensidade para os próximos ciclos.\n\nAquecimento:\n10min de corrida leve\nPausa de 1 a 2 minutos antes do teste. (isso é relativo, pause o suficiente para que sua frequência cardíaca diminua para a etapa principal do teste).\n\nExecução do teste: \nTEMPO TOTAL: 12 MINUTOS CONTÍNUOS\n\nRecomendações:\n- Ritmo: forte e constante, sustentável do inicio ao fim.\n- Evitar sair muito rápido no início\n- Buscar progressão de velocidade do meio para o fim, ou sair em uma velocidade que consiga sustentar até o final sem parar.\n- Realizar em local plano, sem pausas ou retornos para facilitar o máximo de desempenho possível.\n- Marcar o AQUECIMENTO e o TESTE em atividades separadas no STRAVA.",
+                  "pace": "",
+                  "obs": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 2,
+              "nome": "Treinamento",
+              "treinos": [
+                {
+                  "dia": "2026-03-24",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "1. Correr por 3.5km ",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:40 a 7:20 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-03-26",
+                  "fase": "",
+                  "tipo": "Bloco",
+                  "especificacao": "1. Correr por 3km - Intensidade Z1 - Corrida Leve (7:40 a 7:20 min/km)\n2. Correr por 1km - Intensidade Z2 - Corrida Leve/Moderada (7:20 a 7:00 min/km)",
+                  "pace": "",
+                  "obs": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-03-28",
+                  "fase": "",
+                  "tipo": "Longão",
+                  "especificacao": "1. Correr por 5km ",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:40 a 7:20 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 3,
+              "nome": "Semana Tpm",
+              "treinos": [
+                {
+                  "dia": "2026-03-24",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:40 a 7:20 min/km",
+                  "blocos": [
+                    {
+                      "descricao": "",
+                      "distancia": "",
+                      "repeticoes": "1",
+                      "pace": "",
+                      "intervalo": ""
+                    }
+                  ],
+                  "zona": "",
+                  "modalidade": "Corrida",
+                  "km": "3"
+                },
+                {
+                  "dia": "2026-03-26",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:40 a 7:20 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida",
+                  "km": "3"
+                },
+                {
+                  "dia": "2026-04-04",
+                  "fase": "",
+                  "tipo": "Longão",
+                  "especificacao": "",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:40 a 7:20min/km",
+                  "km": "6",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 4,
+              "nome": "Semana pós menstrual",
+              "treinos": [
+                {
+                  "dia": "2026-04-14",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "1. Correr por 3km - Intensidade Z1 - Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "Z1 - 7:40 a 7:20 km/min",
+                  "km": "3",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-04-16",
+                  "fase": "",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "1. Correr por 4km - Intensidade Z1 - Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "7:40 a 7:20 km/min",
+                  "km": "4",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-04-18",
+                  "fase": "",
+                  "tipo": "Longão",
+                  "especificacao": "1. Correr por 5km - Z1 (7:40 a 7:20 min/km)\n2. Correr por 1km - Z2 (7:20 a 7:00 min/km)",
+                  "pace": "",
+                  "obs": "Começar a corrida mais leve a 7:40~7:30 e deixar pra correr mais rápido realmente no último km pra conseguir concluir com mais facilidade.",
+                  "km": "6",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 5,
+              "nome": "Semana de Choque - Período Específico",
+              "treinos": []
+            },
+            {
+              "semana": 6,
+              "nome": "Semana de Recuperação - Período Específico",
+              "treinos": []
+            },
+            {
+              "semana": 7,
+              "nome": "Semana de Polimento",
+              "treinos": []
+            },
+            {
+              "semana": 8,
+              "nome": "Semana de Prova",
+              "treinos": []
+            },
+            {
+              "semana": 9,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 10,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 11,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 12,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 13,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 14,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 15,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 16,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 17,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 18,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 19,
+              "nome": "",
+              "treinos": []
+            },
+            {
+              "semana": 20,
+              "nome": "",
+              "treinos": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1769127467869,
+      "nome": "Suzy",
+      "ciclos": [
+        {
+          "id": 1769361882343,
+          "nome": "Ciclo 21km - Maratona Piaui Crono ",
+          "semanas": [
+            {
+              "semana": 1,
+              "nome": ".",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "",
+                  "pace": "",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "",
+                  "pace": "",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "",
+                  "pace": "",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 2,
+              "nome": "Semana Ordinária - Periodo Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "6KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "8KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "RODAGEM"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "12KM CONTINUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "LONGÃO"
+                }
+              ]
+            },
+            {
+              "semana": 3,
+              "nome": "Semana Ordinária - Período Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "5KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "8KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "14KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "CORRIDA LEVE"
+                }
+              ]
+            },
+            {
+              "semana": 4,
+              "nome": "Semana de Choque - Período Base",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "Corrida Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "6:30 a 6:00 min/km",
+                  "especificacao": "5KM CONTÍNUO"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "6KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "6:30 a 6:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "Base",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "12KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "6:30 a 6:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 5,
+              "nome": "Semana Ordinária - Periodo Específico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "6:30 a 6:00 min/km",
+                  "especificacao": "5KM CONTÍNUO"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Corrida Leve",
+                  "especificacao": "6KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "6:30 a 6:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "",
+                  "fase": "Específico",
+                  "tipo": "Longão",
+                  "especificacao": "12KM CONTÍNUO",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "6:30 a 6:00 min/km",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 6,
+              "nome": "Semana Ordinária - Periodo Específico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "14",
+                  "pace": "",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 7,
+              "nome": "Semana de Choque - Periodo Especifico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "16",
+                  "pace": "",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 8,
+              "nome": "Semana de Choque - Periodo Especifico",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "18",
+                  "pace": "",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 9,
+              "nome": "Polimento",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "12",
+                  "pace": "",
+                  "obs": ""
+                }
+              ]
+            },
+            {
+              "semana": 10,
+              "nome": "Polimento / PROVA",
+              "treinos": [
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "7",
+                  "pace": "Leve",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "6",
+                  "pace": "Leve",
+                  "obs": ""
+                },
+                {
+                  "dia": "",
+                  "fase": "",
+                  "tipo": "PROVA",
+                  "pace": "",
+                  "obs": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 1776035526276,
+      "nome": "Amanda Sousa",
+      "ciclos": [
+        {
+          "id": 1776035539917,
+          "nome": "Treinos",
+          "prova": null,
+          "semanas": [
+            {
+              "semana": 1,
+              "nome": "Semana pós menstrual",
+              "treinos": [
+                {
+                  "dia": "2026-04-14",
+                  "fase": "",
+                  "tipo": "TRT - Teste de Ritmo Total",
+                  "especificacao": "Teste de 12 Minutos",
+                  "pace": "",
+                  "obs": "",
+                  "km": "",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-04-18",
+                  "fase": "",
+                  "tipo": "Longão",
+                  "especificacao": "Correr por 6km - Intensidade Leve - 6:30 a 6:10 min/km",
+                  "pace": "",
+                  "obs": "",
+                  "km": "6",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 2,
+              "nome": "-",
+              "treinos": [
+                {
+                  "dia": "2026-04-21",
+                  "fase": "",
+                  "tipo": "Bloco",
+                  "especificacao": "1. Correr por 4km - Intensidade Z1 - Corrida Leve (6:40 a 6:20 min/km)\n2. Correr por 1km - Intensidade Z2 - Corrida Leve/Moderada (6:20 a 6:00 min/km)",
+                  "pace": "",
+                  "obs": "",
+                  "km": "5",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                },
+                {
+                  "dia": "2026-04-24",
+                  "fase": "",
+                  "tipo": "Longão",
+                  "especificacao": "1. Correr por 7km - Intensidade Z1 - Corrida Leve (6:40 a 6:20 min/km)",
+                  "pace": "Z1 - Corrida Leve",
+                  "obs": "",
+                  "km": "7",
+                  "blocos": [],
+                  "zona": "",
+                  "modalidade": "Corrida"
+                }
+              ]
+            },
+            {
+              "semana": 3,
+              "nome": "Semana de Recuperação - Período Base",
+              "treinos": []
+            },
+            {
+              "semana": 4,
+              "nome": "Semana Ordinária - Período Específico",
+              "treinos": []
+            },
+            {
+              "semana": 5,
+              "nome": "Semana de Choque - Período Específico",
+              "treinos": []
+            },
+            {
+              "semana": 6,
+              "nome": "Semana de Recuperação - Período Específico",
+              "treinos": []
+            },
+            {
+              "semana": 7,
+              "nome": "Semana de Polimento",
+              "treinos": []
+            },
+            {
+              "semana": 8,
+              "nome": "Semana de Prova",
+              "treinos": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ultimoBackup": "2026-04-20T00:35:05.433Z",
+  "zonas": {
+    "paceTeste3km": "02:50",
+    "paceSegundos": 170,
+    "zonas": {
+      "Z1": {
+        "paceSegundos": 283,
+        "paceFormatado": "04:43/km",
+        "velocidadeKmh": 12.72
+      },
+      "Z2": {
+        "paceSegundos": 243,
+        "paceFormatado": "04:03/km",
+        "velocidadeKmh": 14.81
+      },
+      "Z3": {
+        "paceSegundos": 200,
+        "paceFormatado": "03:20/km",
+        "velocidadeKmh": 18
+      },
+      "Z4": {
+        "paceSegundos": 179,
+        "paceFormatado": "02:59/km",
+        "velocidadeKmh": 20.11
+      },
+      "Z5": {
+        "paceSegundos": 170,
+        "paceFormatado": "02:50/km",
+        "velocidadeKmh": 21.18
+      }
+    },
+    "dataCalculo": "2026-03-23T16:42:11.634Z"
+  },
+  "biblioteca": [],
+  "templatesCiclo": [],
+  "historicoPaces": [
+    {
+      "data": "23/03/2026",
+      "pace": "02:50",
+      "paceSegundos": 170
+    }
+  ]
+}
