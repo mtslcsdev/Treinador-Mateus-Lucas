@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Biblioteca de treinos" description="Treinos salvos com busca, filtro por tipo e prévia da prescrição antes de inserir na semana." -->
+<helmet><script src="./ds-base.js"></script><script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0}body{background:var(--bg-app);font-family:var(--font-sans);font-size:var(--text-base);color:var(--text-primary);line-height:var(--leading-body)}a{color:var(--primary);text-decoration:none}a:hover{color:var(--primary-dark);text-decoration:underline}</style></helmet>
+<div style="min-height:100vh;background:var(--bg-app)">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.AppHeader" hint-size="100%,84px" title="Treinador Mateus Lucas" actions="{{ headerActions }}"></x-import>
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Breadcrumb" hint-size="100%,40px" items="{{ crumbs }}"></x-import>
+<div style="max-width:var(--max-width-desktop);margin:0 auto;padding:var(--padding-desktop)">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+<div>
+<div style="font-size:var(--text-11);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-eyebrow-wide);color:var(--accent);margin-bottom:6px">Treinos salvos</div>
+<h1 style="margin:0;font-size:1.6rem;font-weight:var(--weight-bold);letter-spacing:-0.6px;line-height:1.15">Biblioteca de treinos</h1>
+<p style="margin:6px 0 0;font-size:var(--text-13-5);color:var(--text-secondary)">{{ resumo }}</p>
+</div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<a href="../planilha-semana/PlanilhaSemana.dc.html" style="text-decoration:none"><x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Button" hint-size="130px,38px" variant="ghost">Ir à planilha</x-import></a>
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Button" hint-size="140px,38px">Salvar treino atual</x-import>
+</div>
+</div>
+<sc-if value="{{ mostrarFiltros }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px">
+<sc-for list="{{ filtros }}" as="f" hint-placeholder-count="6">
+<div style="font-size:var(--text-12);font-weight:var(--weight-semibold);padding:7px 14px;border-radius:99px;border:1.5px solid var(--border);background:var(--bg-surface);color:var(--text-secondary);cursor:pointer;transition:border-color .15s,color .15s" style-hover="border-color:var(--primary);color:var(--primary)" onClick="{{ f.onPick }}">{{ f.label }}</div>
+</sc-for>
+</div>
+</sc-if>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Card" hint-size="100%,480px" padding="1.5rem">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.SectionHeader" hint-size="100%,52px" title="Treinos" subtitle="{{ listaSubtitle }}"></x-import>
+<sc-if value="{{ erro }}" hint-placeholder-val="{{ false }}">
+<div style="padding:42px 20px;display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center">
+<div style="width:46px;height:46px;border-radius:50%;background:var(--danger-light);color:var(--danger);display:grid;place-items:center;font-size:22px;font-weight:800">!</div>
+<div style="font-size:var(--text-16);font-weight:var(--weight-bold)">Não foi possível carregar a biblioteca</div>
+<div style="font-size:var(--text-13-5);color:var(--text-secondary);max-width:38ch;line-height:var(--leading-body)">A conexão caiu antes da lista chegar. Seus treinos salvos continuam no servidor.</div>
+<div style="margin-top:6px"><x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Button" hint-size="130px,38px" onClick="{{ tentarNovamente }}">Tentar de novo</x-import></div>
+</div>
+</sc-if>
+<sc-if value="{{ bibliotecaVazia }}" hint-placeholder-val="{{ false }}">
+<div style="padding:34px 20px 26px;display:flex;flex-direction:column;align-items:center;gap:16px">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.EmptyState" hint-size="100%,150px" title="Sua biblioteca está vazia" subtitle="Monte um treino na planilha e salve — ele aparece aqui para reaproveitar em qualquer atleta." icon="{{ emptyIcon }}"></x-import>
+<a href="../planilha-semana/PlanilhaSemana.dc.html" style="text-decoration:none"><x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Button" hint-size="170px,38px">Montar o primeiro treino</x-import></a>
+</div>
+</sc-if>
+<sc-if value="{{ mostrarLista }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.WorkoutLibrary" hint-size="100%,380px" items="{{ itens }}" query="{{ query }}" onQuery="{{ onQuery }}" onPick="{{ onPick }}"></x-import>
+<sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.EmptyState" hint-size="100%,150px" title="Nenhum treino com esse filtro" subtitle="Limpe a busca ou escolha outro tipo." icon="{{ emptyIcon }}"></x-import>
+</sc-if>
+</sc-if>
+</x-import>
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Card" hint-size="100%,420px" padding="1.5rem">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.SectionHeader" hint-size="100%,52px" title="Prévia" subtitle="{{ previaSubtitle }}"></x-import>
+<sc-if value="{{ temSelecao }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.WorkoutCard" hint-size="100%,220px" weekday="QUI" day="06" month="AGO" badge="{{ previewBadge }}" phase="{{ previewPhase }}" description="{{ previewDescricao }}" chips="{{ previewChips }}"></x-import>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:16px">
+<div style="padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-app)">
+<div style="font-size:var(--text-11);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-eyebrow-wide);color:var(--text-muted)">Pace alvo</div>
+<div style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:var(--weight-bold);letter-spacing:1px;margin-top:6px">{{ previewPace }}</div>
+</div>
+<div style="padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-app)">
+<div style="font-size:var(--text-11);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-eyebrow-wide);color:var(--text-muted)">Janela de tempo</div>
+<div style="font-family:var(--font-mono);font-size:var(--text-base);font-weight:var(--weight-bold);letter-spacing:1px;margin-top:6px">{{ previewTempo }}</div>
+</div>
+<div style="padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-app)">
+<div style="font-size:var(--text-11);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-eyebrow-wide);color:var(--text-muted)">Usado</div>
+<div style="font-size:var(--text-base);font-weight:var(--weight-bold);margin-top:6px">{{ previewUsos }}</div>
+</div>
+</div>
+<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Button" hint-size="150px,38px">Inserir na semana</x-import>
+<x-import component-from-global-scope="TreinadorMateusLucasDesignSystem_53df72.Button" hint-size="110px,38px" variant="ghost">Duplicar</x-import>
+</div>
+</sc-if>
+<sc-if value="{{ semSelecao }}" hint-placeholder-val="{{ false }}">
+<div style="padding:38px 20px;text-align:center;font-size:var(--text-13-5);color:var(--text-muted);line-height:var(--leading-body);border:1px dashed var(--border);border-radius:var(--radius-md);background:var(--bg-app)">Escolha um treino na lista para ver a prescrição como o atleta vai ler.</div>
+</sc-if>
+</x-import>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;testePace&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;05:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Atleta&quot;},&quot;ordenarPor&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;usos&quot;,&quot;nome&quot;],&quot;default&quot;:&quot;usos&quot;,&quot;tsType&quot;:&quot;'usos'|'nome'&quot;,&quot;section&quot;:&quot;Lista&quot;},&quot;estado&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Normal&quot;,&quot;Biblioteca vazia&quot;,&quot;Erro ao carregar&quot;],&quot;default&quot;:&quot;Normal&quot;,&quot;tsType&quot;:&quot;'Normal'|'Biblioteca vazia'|'Erro ao carregar'&quot;,&quot;section&quot;:&quot;Lista&quot;}}">
+class Component extends DCLogic {
+  state = { query: '', tipo: 'Todos', sel: 0, estadoLocal: null };
+  renderVals(){
+    const NS = window.TreinadorMateusLucasDesignSystem_53df72 || {};
+    const est = this.state.estadoLocal ?? this.props.estado ?? 'Normal';
+    const erro = est === 'Erro ao carregar';
+    const bibliotecaVazia = est === 'Biblioteca vazia';
+    const teste = this.props.testePace ?? '05:00';
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(teste).trim());
+    const t = m ? Number(m[1]) * 60 + Number(m[2]) : 300;
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmt = (s) => pad(Math.floor(s / 60)) + ':' + pad(Math.round(s) % 60);
+    const dur = (s) => {
+      s = Math.round(s);
+      const h = Math.floor(s / 3600);
+      return (h ? h + ':' + pad(Math.floor(s % 3600 / 60)) : pad(Math.floor(s / 60))) + ':' + pad(s % 60);
+    };
+    const Z = { Z1: t + 60, Z2: t + 40, Z3: t + 20, Z4: t, Z5: t - 20 };
+    const baseTodos = [
+      { nome: 'Intervalado 6x800m', tipo: 'intervalado', dist: 9.8, zona: 'Z4', usos: 14, fase: 'Base',
+        descricao: '1. Correr por 2 km — Intensidade Z2\n2. 6x 800 m — Intensidade Z4 · Intervalo 2min trote\n3. Correr por 3 km — Intensidade Z1' },
+      { nome: 'Longão conversável 16k', tipo: 'longao', dist: 16, zona: 'Z2', usos: 22, fase: 'Base',
+        descricao: '1. Correr por 16 km — Intensidade Z2' },
+      { nome: 'Progressivo 8k', tipo: 'progressivo', dist: 8, zona: 'Z2', usos: 18, fase: 'Base',
+        descricao: '1. Correr por 8 km — Intensidade Z2, últimos 2 km em Z3' },
+      { nome: 'Ritmado 10k', tipo: 'ritmado', dist: 10, zona: 'Z3', usos: 9, fase: 'Específico',
+        descricao: '1. Correr por 2 km — Intensidade Z1\n2. Correr por 8 km — Intensidade Z3' },
+      { nome: 'Repetições 10x400m', tipo: 'repeticoes', dist: 8, zona: 'Z5', usos: 6, fase: 'Específico',
+        descricao: '1. Correr por 2 km — Intensidade Z2\n2. 10x 400 m — Intensidade Z5 · Intervalo 90s trote\n3. Correr por 2 km — Intensidade Z1' },
+      { nome: 'Fartlek 1/1', tipo: 'fartlek', dist: 9, zona: 'Z4', usos: 11, fase: 'Específico',
+        descricao: '1. Correr por 2 km — Intensidade Z2\n2. Fartlek 20 min — 1 min em Z4, 1 min em Z1\n3. Correr por 2 km — Intensidade Z1' },
+      { nome: 'Regenerativo 6k', tipo: 'leve', dist: 6, zona: 'Z1', usos: 27, fase: 'Base',
+        descricao: '1. Correr por 6 km — Intensidade Z1' }
+    ];
+    const base = (bibliotecaVazia || erro) ? [] : baseTodos;
+    const tipos = ['Todos', 'leve', 'progressivo', 'ritmado', 'intervalado', 'repeticoes', 'fartlek', 'longao'];
+    const rotulos = { Todos: 'Todos', leve: 'Leve', progressivo: 'Progressivo', ritmado: 'Ritmado',
+      intervalado: 'Intervalado', repeticoes: 'Repetições', fartlek: 'Fartlek', longao: 'Longão' };
+    const tipo = this.state.tipo;
+    const q = this.state.query.trim().toLowerCase();
+    const filtrados = base.filter(x =>
+      (tipo === 'Todos' || x.tipo === tipo) && (!q || x.nome.toLowerCase().includes(q)));
+    const ordenados = (this.props.ordenarPor ?? 'usos') === 'nome'
+      ? [...filtrados].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+      : [...filtrados].sort((a, b) => b.usos - a.usos);
+    // Guarda: com a biblioteca vazia não existe base[0], e ler sel.zona derrubava o template.
+    const SEM_TREINO = { nome: '—', tipo: 'leve', dist: 0, zona: 'Z2', usos: 0, fase: 'Base', descricao: '' };
+    const sel = ordenados[Math.min(this.state.sel, Math.max(ordenados.length - 1, 0))] || base[0] || SEM_TREINO;
+    const pMin = Z[sel.zona], pMax = Z[sel.zona] + 20;
+    const temSelecao = ordenados.length > 0;
+    const glyph = (name) => NS.Icon ? React.createElement(NS.Icon, { name, size: 15 }) : null;
+    const headerActions = NS.IconButton
+      ? React.createElement('div', { style: { display: 'flex', gap: 8, alignItems: 'center' } },
+          React.createElement('span', { key: 's', style: { fontSize: 12, color: 'rgba(255,255,255,0.7)' } }, 'Salvo agora'),
+          React.createElement(NS.IconButton, { key: 'u', tone: 'onDark', title: 'Desfazer', icon: glyph('undo-2') }),
+          React.createElement(NS.IconButton, { key: 'r', tone: 'onDark', title: 'Refazer', icon: glyph('redo-2') }),
+          React.createElement(NS.IconButton, { key: 't', tone: 'onDark', title: 'Tema escuro', icon: glyph('moon') }))
+      : null;
+    const resumo = erro
+      ? 'Lista indisponível'
+      : bibliotecaVazia
+        ? 'Nenhum treino salvo ainda'
+        : baseTodos.length + ' treinos salvos · ' + baseTodos.reduce((s, x) => s + x.usos, 0) + ' inserções no total';
+    const listaSubtitle = erro
+      ? 'erro de conexão'
+      : bibliotecaVazia
+        ? 'nada salvo ainda'
+        : ordenados.length
+          ? ordenados.length + (ordenados.length === 1 ? ' treino' : ' treinos') + (tipo === 'Todos' ? '' : ' em ' + rotulos[tipo])
+          : 'nada encontrado';
+    return {
+      headerActions,
+      crumbs: ['Atletas', 'Biblioteca de treinos'],
+      resumo,
+      listaSubtitle,
+      erro,
+      bibliotecaVazia,
+      mostrarLista: !erro && !bibliotecaVazia,
+      mostrarFiltros: !erro && !bibliotecaVazia,
+      tentarNovamente: () => this.setState({ estadoLocal: 'Normal' }),
+      filtros: tipos.map(x => ({ label: rotulos[x], onPick: () => this.setState({ tipo: x, sel: 0 }) })),
+      itens: ordenados,
+      query: this.state.query,
+      onQuery: (v) => this.setState({ query: typeof v === 'string' ? v : (v && v.target ? v.target.value : ''), sel: 0 }),
+      onPick: (item) => this.setState({ sel: ordenados.indexOf(item) }),
+      vazio: !erro && !bibliotecaVazia && ordenados.length === 0,
+      temSelecao,
+      semSelecao: !temSelecao,
+      previaSubtitle: temSelecao ? 'A prescrição como o atleta vai ler' : 'Nenhum treino selecionado',
+      emptyIcon: NS.Icon ? React.createElement(NS.Icon, { name: 'library', size: 36 }) : null,
+      previewBadge: NS.TrainingTypeBadge ? React.createElement(NS.TrainingTypeBadge, { type: sel.tipo }) : null,
+      previewPhase: NS.PhaseBadge ? React.createElement(NS.PhaseBadge, { phase: sel.fase }) : null,
+      previewDescricao: sel.descricao,
+      previewChips: [sel.dist.toFixed(1) + ' km', 'Intensidade ' + sel.zona, dur(sel.dist * pMax) + ' no pior caso'],
+      previewPace: fmt(pMin) + ' a ' + fmt(pMax) + '/km',
+      previewTempo: dur(sel.dist * pMin) + ' a ' + dur(sel.dist * pMax),
+      previewUsos: sel.usos + (sel.usos === 1 ? ' vez' : ' vezes')
+    };
+  }
+}
+</script>
+</body>
+</html>

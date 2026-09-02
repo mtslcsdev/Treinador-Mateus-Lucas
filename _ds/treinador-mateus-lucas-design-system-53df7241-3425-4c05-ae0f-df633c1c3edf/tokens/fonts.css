@@ -1,0 +1,12 @@
+/* Inter é a fonte da marca — carregada do Google Fonts, como o produto faz no index.html.
+   Nenhum binário de fonte acompanha o repositório de origem.
+
+   Dois caminhos, de propósito:
+   1. Este @import garante Inter para quem só linka styles.css (rede de segurança).
+   2. templates/*/ds-base.js também injeta um <link> + preconnect, para a fonte
+      começar a baixar em paralelo com o CSS em vez de esperar a cadeia de @import.
+   O navegador dedupa a mesma URL, então não há requisição dobrada.
+
+   Para auto-hospedar: coloque os .woff2 em assets/fonts/, troque este @import por
+   regras @font-face reais e o compilador passa a registrar as fontes no manifesto. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");

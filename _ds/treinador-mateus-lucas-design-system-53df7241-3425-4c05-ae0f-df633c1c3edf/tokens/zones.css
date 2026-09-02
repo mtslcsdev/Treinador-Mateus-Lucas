@@ -1,0 +1,15 @@
+:root{
+  /* Training-zone identity: Z1 slowest → Z5 fastest. Solid values on light surfaces. */
+  --z1:#16a34a;
+  --z2:#0891b2;
+  --z3:#ca8a04;
+  --z4:#ea580c;
+  --z5:#dc2626;
+
+  /* Lighter variants used on the dark-blue zone panel */
+  --z1-on-dark:#4ade80;
+  --z2-on-dark:#38bdf8;
+  --z3-on-dark:#fbbf24;
+  --z4-on-dark:#fb923c;
+  --z5-on-dark:#f87171;
+}

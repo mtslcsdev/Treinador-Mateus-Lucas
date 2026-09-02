@@ -1,0 +1,93 @@
+.painel-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.painel-header {
+  background: white;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.painel-header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.logout-button {
+  padding: 8px 16px;
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.logout-button:hover {
+  background: #ee5a52;
+}
+
+.painel-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.painel-main section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.painel-main h2 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: #333;
+}
+
+.atletas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.atleta-card {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.atleta-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.atleta-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: #333;
+}
+
+.atleta-card p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #666;
+}
+
+.aderencia {
+  background: #e8f5e9;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #2e7d32;
+  font-weight: 600;
+}

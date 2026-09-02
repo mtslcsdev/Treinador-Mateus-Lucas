@@ -1,0 +1,18 @@
+:root{
+  --duration-fast:0.15s; /* @kind other */
+  --duration-base:0.2s; /* @kind other */
+  --duration-slow:0.3s; /* @kind other */
+  --duration-drawer:0.25s; /* @kind other */
+
+  --ease-standard:cubic-bezier(0.4,0,0.2,1); /* @kind other */
+  --ease-drawer:cubic-bezier(0.16,1,0.3,1); /* @kind other */
+  --ease-overshoot:cubic-bezier(0.34,1.56,0.64,1); /* @kind other */ /* bar chart growth */
+
+  --lift-hover:-1px;       /* buttons */
+  --lift-card-hover:-2px;  /* cycle cards */
+  --lift-card-hover-lg:-6px; /* athlete cards */
+
+  --overlay-scrim:rgba(15,23,42,0.6);
+  --overlay-scrim-light:rgba(15,23,42,0.55);
+  --overlay-scrim-heavy:rgba(15,23,42,0.78);
+}
