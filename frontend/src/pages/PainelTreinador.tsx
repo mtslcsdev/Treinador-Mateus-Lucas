@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ArrowUpRight, CalendarRange, Download, LogOut, Plus, Target, TrendingUp } from 'lucide-react'
 import { useSupabase } from '../contexts/SupabaseContext'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/shared.css'
@@ -69,6 +70,8 @@ export default function PainelTreinador() {
     }
   }
 
+  const media = Math.round(atletas.reduce((sum, atleta) => sum + atleta.aderencia, 0) / Math.max(atletas.length, 1))
+
   return (
     <div className="app-shell">
       <header className="topbar compact-topbar">
@@ -77,10 +80,10 @@ export default function PainelTreinador() {
           <h1>Treinador Mateus Lucas</h1>
         </div>
         <div className="topbar-actions">
-          <button type="button" className="subtle-button">Relatório</button>
-          <button type="button" className="subtle-button">Exportar</button>
-          <button type="button" className="primary-action">Novo atleta</button>
-          <button type="button" className="logout-button" onClick={handleLogout}>Sair</button>
+          <button type="button" className="subtle-button"><Download size={15} /> Relatório</button>
+          <button type="button" className="subtle-button"><CalendarRange size={15} /> Exportar</button>
+          <button type="button" className="primary-action"><Plus size={15} /> Novo atleta</button>
+          <button type="button" className="logout-button" onClick={handleLogout}><LogOut size={15} /> Sair</button>
         </div>
       </header>
 
@@ -91,16 +94,23 @@ export default function PainelTreinador() {
             <p>{atletas.length} atletas · {atletas.reduce((sum, atleta) => sum + atleta.ciclos, 0)} ciclos ativos</p>
           </div>
           <div className="header-actions">
-            <button type="button" className="subtle-button">Relatório</button>
-            <button type="button" className="subtle-button">Exportar</button>
-            <button type="button" className="primary-action">Novo atleta</button>
+            <button type="button" className="subtle-button"><TrendingUp size={15} /> Relatório</button>
+            <button type="button" className="subtle-button"><Download size={15} /> Exportar</button>
+            <button type="button" className="primary-action"><Plus size={15} /> Novo atleta</button>
+          </div>
+        </div>
+
+        <div className="week-strip">
+          <div>
+            <span>03/08/2026 até 09/08/2026</span>
+            <strong>Semana 1 de 8 · Ciclo 21km · Período Base</strong>
           </div>
         </div>
 
         <div className="stats-grid">
           <div className="stat-card">
             <span>Aderência média</span>
-            <strong>{Math.round(atletas.reduce((sum, atleta) => sum + atleta.aderencia, 0) / Math.max(atletas.length, 1))}%</strong>
+            <strong>{media}%</strong>
             <small>{atletas.filter((atleta) => atleta.aderencia < 60).length} atletas abaixo de 60%</small>
           </div>
           <div className="stat-card primary">
@@ -142,8 +152,8 @@ export default function PainelTreinador() {
                     <span>{atleta.ciclos} ciclos</span>
                   </div>
                   <div className="card-actions">
-                    <button type="button" className="secondary-button">Detalhes</button>
-                    <button type="button" className="primary-button">Abrir</button>
+                    <button type="button" className="secondary-button"><Target size={14} /> Detalhes</button>
+                    <button type="button" className="primary-button"><ArrowUpRight size={14} /> Abrir</button>
                   </div>
                 </div>
               ))}

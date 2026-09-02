@@ -1,3 +1,5 @@
+import { Download, FileText, Save } from 'lucide-react'
+
 export default function RelatorioAtleta() {
   return (
     <div className="app-shell">
@@ -7,8 +9,8 @@ export default function RelatorioAtleta() {
           <h1>Allan e Pedro Henrique</h1>
         </div>
         <div className="topbar-actions">
-          <button type="button" className="subtle-button">Exportar PDF</button>
-          <button type="button" className="primary-action">Salvar</button>
+          <button type="button" className="subtle-button"><Download size={15} /> Exportar PDF</button>
+          <button type="button" className="primary-action"><Save size={15} /> Salvar</button>
         </div>
       </header>
 
@@ -16,6 +18,7 @@ export default function RelatorioAtleta() {
         <div className="table-card">
           <div className="panel-header">
             <h2>Resumo do ciclo</h2>
+            <span className="badge-pill"><FileText size={12} /> Semana 1</span>
           </div>
           <table className="report-table">
             <thead>

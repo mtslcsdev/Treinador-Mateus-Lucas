@@ -1,3 +1,5 @@
+import { CalendarRange, Plus, Target, TrendingUp } from 'lucide-react'
+
 const zoneValues = [
   { zone: 'Z1', pace: '05:00 a 05:20/km', speed: '11.25 a 12.00 km/h' },
   { zone: 'Z2', pace: '05:20 a 05:40/km', speed: '10.50 a 11.25 km/h' },
@@ -15,9 +17,9 @@ export default function DetalheAtleta() {
           <h1>Allan e Pedro Henrique</h1>
         </div>
         <div className="topbar-actions">
-          <button type="button" className="subtle-button">Relatório</button>
-          <button type="button" className="subtle-button">Notas</button>
-          <button type="button" className="primary-action">Novo ciclo</button>
+          <button type="button" className="subtle-button"><TrendingUp size={15} /> Relatório</button>
+          <button type="button" className="subtle-button"><Target size={15} /> Notas</button>
+          <button type="button" className="primary-action"><Plus size={15} /> Novo ciclo</button>
         </div>
       </header>
 
@@ -35,10 +37,10 @@ export default function DetalheAtleta() {
           </div>
         </div>
 
-        <div className="panel-card" style={{ background: 'linear-gradient(135deg, #0f3a7d 0%, #051b2f 100%)', color: '#fff', borderColor: '#1a5ab8' }}>
-          <div className="panel-header" style={{ marginBottom: 18 }}>
-            <h2 style={{ color: '#fff' }}>Zonas de treino</h2>
-            <button type="button" className="subtle-button" style={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}>Calcular</button>
+        <div className="panel-card panel-hero">
+          <div className="panel-header panel-header-hero">
+            <h2>Zonas de treino</h2>
+            <button type="button" className="subtle-button subtle-button-light"><CalendarRange size={15} /> Calcular</button>
           </div>
           <div className="zone-grid">
             {zoneValues.map((item) => (
@@ -56,11 +58,11 @@ export default function DetalheAtleta() {
             <h2>Ciclos</h2>
           </div>
           <div className="atletas-grid">
-            <div className="atleta-card">
+            <div className="atleta-card cycle-card">
               <h3>21km - Maratona Piauí Crono</h3>
               <p>8 semanas · 22 treinos · prova alvo: Meia Maratona da PF</p>
             </div>
-            <div className="atleta-card">
+            <div className="atleta-card cycle-card">
               <h3>Base de retomada</h3>
               <p>4 semanas · 4 treinos · fase de retorno</p>
             </div>

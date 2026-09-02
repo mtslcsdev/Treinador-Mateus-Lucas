@@ -89,12 +89,22 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .subtle-button {
   background: transparent;
   color: #0f3a7d;
   border: 1px solid #dfe7f1;
+}
+
+.subtle-button-light {
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
+  background: rgba(255,255,255,0.06);
 }
 
 .primary-action,
@@ -175,12 +185,22 @@
   margin-bottom: 18px;
 }
 
+.panel-hero {
+  background: linear-gradient(135deg, #0f3a7d 0%, #051b2f 100%);
+  color: white;
+  border-color: #1a5ab8;
+}
+
 .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 18px;
+}
+
+.panel-header-hero h2 {
+  color: white;
 }
 
 .panel-header h2 {
@@ -233,6 +253,13 @@
   margin: 0 0 8px;
   font-size: 1.05rem;
   line-height: 1.3;
+}
+
+.cycle-card {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .atleta-card p {
@@ -386,6 +413,29 @@
   background: #f8fafc;
   color: #64748b;
   text-align: center;
+}
+
+.week-strip {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.week-strip span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.7px;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.week-strip strong {
+  font-size: 14px;
+  color: #0f172a;
 }
 
 @media (max-width: 720px) {
