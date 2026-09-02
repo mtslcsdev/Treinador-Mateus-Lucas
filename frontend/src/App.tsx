@@ -2,6 +2,8 @@ import { ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { SupabaseProvider } from './contexts/SupabaseContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { CiclosProvider } from './contexts/CiclosContext'
+import { TreinosProvider } from './contexts/TreinosContext'
 import LoginPage from './pages/LoginPage'
 import PainelTreinador from './pages/PainelTreinador'
 import DetalheAtleta from './pages/DetalheAtleta'
@@ -32,36 +34,40 @@ export default function App() {
   return (
     <SupabaseProvider>
       <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <PainelTreinador />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/atleta/:id"
-              element={
-                <ProtectedRoute>
-                  <DetalheAtleta />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/relatorio/:id"
-              element={
-                <ProtectedRoute>
-                  <RelatorioAtleta />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+        <CiclosProvider>
+          <TreinosProvider>
+            <Router>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <PainelTreinador />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/atleta/:id"
+                  element={
+                    <ProtectedRoute>
+                      <DetalheAtleta />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/relatorio/:id"
+                  element={
+                    <ProtectedRoute>
+                      <RelatorioAtleta />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Router>
+          </TreinosProvider>
+        </CiclosProvider>
       </AuthProvider>
     </SupabaseProvider>
   )
