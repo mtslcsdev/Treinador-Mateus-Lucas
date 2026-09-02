@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from io import BytesIO
 from app.database import get_db
+from app.services.pdf_generator import RelatorioPDFGenerator
 
 router = APIRouter(prefix="/api/relatorios", tags=["relatorios"])
 
@@ -44,20 +45,70 @@ async def relatorio_semana(db = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/export/pdf/{atleta_id}")
+@router.get("/export/pdf/{atleta_id}")
 async def export_pdf_atleta(atleta_id: int, db = Depends(get_db)):
-    """Exportar relatório em PDF"""
+    """Exportar relatório completo em PDF"""
     try:
         # Buscar dados do atleta
         atleta_response = db.table("atletas").select("*").eq("id", atleta_id).single().execute()
         if not atleta_response.data:
             raise HTTPException(status_code=404, detail="Atleta não encontrado")
         
-        # TODO: Implementar geração de PDF com html2pdf
-        # Por enquanto, retornar JSON
-        return {
-            "message": "PDF export not implemented yet",
-            "atleta": atleta_response.data
-        }
+        # Buscar ciclos
+        ciclos_response = db.table("ciclos").select("*").eq("atleta_id", atleta_id).execute()
+        
+        # Buscar treinos
+        treinos_response = db.table("treinos").select("*").execute()
+        
+        # Gerar PDF
+        pdf_generator = RelatorioPDFGenerator()
+        pdf_buffer = pdf_generator.gerar_relatorio_atleta(
+            atleta_response.data,
+            ciclos_response.data or [],
+            treinos_response.data or []
+        )
+        
+        # Retornar PDF como download
+        return StreamingResponse(
+            iter([pdf_buffer.getvalue()]),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=relatorio_atleta_{atleta_id}.pdf"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/export/pdf/treino/{ciclo_id}")
+async def export_pdf_treino(ciclo_id: int, db = Depends(get_db)):
+    """Exportar treino da semana em PDF (versão simples para imprimir)"""
+    try:
+        # Buscar ciclo
+        ciclo_response = db.table("ciclos").select("*").eq("id", ciclo_id).single().execute()
+        if not ciclo_response.data:
+            raise HTTPException(status_code=404, detail="Ciclo não encontrado")
+        
+        ciclo = ciclo_response.data
+        
+        # Buscar atleta
+        atleta_response = db.table("atletas").select("*").eq("id", ciclo['atleta_id']).single().execute()
+        if not atleta_response.data:
+            raise HTTPException(status_code=404, detail="Atleta não encontrado")
+        
+        # Buscar treinos
+        treinos_response = db.table("treinos").select("*").eq("ciclo_id", ciclo_id).execute()
+        
+        # Gerar PDF
+        pdf_generator = RelatorioPDFGenerator()
+        pdf_buffer = pdf_generator.gerar_treino_imprimivel(
+            atleta_response.data,
+            ciclo,
+            treinos_response.data or []
+        )
+        
+        # Retornar PDF como download
+        return StreamingResponse(
+            iter([pdf_buffer.getvalue()]),
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=treino_ciclo_{ciclo_id}.pdf"}
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
