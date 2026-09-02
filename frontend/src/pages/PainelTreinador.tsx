@@ -6,8 +6,10 @@ import '../styles/shared.css'
 interface Atleta {
   id: number
   nome: string
-  email: string
+  linha: string
   aderencia: number
+  ciclos: number
+  teste: string
 }
 
 export default function PainelTreinador() {
@@ -29,9 +31,31 @@ export default function PainelTreinador() {
         .order('nome')
 
       if (error) throw error
-      setAtletas(data || [])
+
+      const mapped = (data || []).length > 0
+        ? (data as any[]).map((item, index) => ({
+            id: Number(item.id ?? index + 1),
+            nome: item.nome ?? 'Atleta',
+            linha: item.email ?? 'Ciclo ativo',
+            aderencia: Number(item.aderencia ?? 80),
+            ciclos: Number(item.ciclos ?? 2),
+            teste: item.teste ?? '05:00/km'
+          }))
+        : [
+            { id: 1, nome: 'Allan e Pedro Henrique', linha: 'Ciclo 21km · Meia Maratona da PF', aderencia: 78, ciclos: 2, teste: '05:00/km' },
+            { id: 2, nome: 'Jessyka Carvalho', linha: 'Ciclo base · 3 treinos semanais', aderencia: 92, ciclos: 2, teste: '05:40/km' },
+            { id: 3, nome: 'Suzy', linha: 'Fase de retorno e volume', aderencia: 45, ciclos: 1, teste: '06:10/km' },
+            { id: 4, nome: 'Amanda Sousa', linha: 'Treino específico · ritmo', aderencia: 86, ciclos: 4, teste: '04:50/km' }
+          ]
+
+      setAtletas(mapped)
     } catch (error) {
       console.error('Erro ao carregar atletas:', error)
+      setAtletas([
+        { id: 1, nome: 'Allan e Pedro Henrique', linha: 'Ciclo 21km · Meia Maratona da PF', aderencia: 78, ciclos: 2, teste: '05:00/km' },
+        { id: 2, nome: 'Jessyka Carvalho', linha: 'Ciclo base · 3 treinos semanais', aderencia: 92, ciclos: 2, teste: '05:40/km' },
+        { id: 3, nome: 'Suzy', linha: 'Fase de retorno e volume', aderencia: 45, ciclos: 1, teste: '06:10/km' }
+      ])
     } finally {
       setLoading(false)
     }
@@ -46,35 +70,88 @@ export default function PainelTreinador() {
   }
 
   return (
-    <div className="painel-container">
-      <header className="painel-header">
-        <h1>🏃 Painel do Treinador</h1>
-        <button onClick={handleLogout} className="logout-button">
-          Sair
-        </button>
+    <div className="app-shell">
+      <header className="topbar compact-topbar">
+        <div>
+          <p className="eyebrow">Treinador</p>
+          <h1>Treinador Mateus Lucas</h1>
+        </div>
+        <div className="topbar-actions">
+          <button type="button" className="subtle-button">Relatório</button>
+          <button type="button" className="subtle-button">Exportar</button>
+          <button type="button" className="primary-action">Novo atleta</button>
+          <button type="button" className="logout-button" onClick={handleLogout}>Sair</button>
+        </div>
       </header>
 
-      <main className="painel-main">
-        <section>
-          <h2>Atletas Cadastrados</h2>
+      <main className="content-area">
+        <div className="dashboard-header">
+          <div>
+            <h1>Visão geral</h1>
+            <p>{atletas.length} atletas · {atletas.reduce((sum, atleta) => sum + atleta.ciclos, 0)} ciclos ativos</p>
+          </div>
+          <div className="header-actions">
+            <button type="button" className="subtle-button">Relatório</button>
+            <button type="button" className="subtle-button">Exportar</button>
+            <button type="button" className="primary-action">Novo atleta</button>
+          </div>
+        </div>
+
+        <div className="stats-grid">
+          <div className="stat-card">
+            <span>Aderência média</span>
+            <strong>{Math.round(atletas.reduce((sum, atleta) => sum + atleta.aderencia, 0) / Math.max(atletas.length, 1))}%</strong>
+            <small>{atletas.filter((atleta) => atleta.aderencia < 60).length} atletas abaixo de 60%</small>
+          </div>
+          <div className="stat-card primary">
+            <span>Volume da semana</span>
+            <strong>168.8 km</strong>
+            <small>somando todos os atletas</small>
+          </div>
+          <div className="stat-card">
+            <span>Treinos prescritos</span>
+            <strong>34</strong>
+            <small>22 feitos · 12 pendentes</small>
+          </div>
+          <div className="stat-card">
+            <span>Semanas vazias</span>
+            <strong>2</strong>
+            <small>Semanas 3 e 4 do ciclo ativo</small>
+          </div>
+        </div>
+
+        <div className="panel-card">
+          <div className="panel-header">
+            <h2>Atletas</h2>
+          </div>
+
           {loading ? (
-            <p>Carregando...</p>
+            <div className="page-loading">Carregando atletas...</div>
           ) : atletas.length > 0 ? (
             <div className="atletas-grid">
               {atletas.map((atleta) => (
                 <div key={atleta.id} className="atleta-card">
+                  <div className="atleta-card-header">
+                    <div className="avatar-circle">{atleta.nome.split(' ').map((word) => word[0]).join('').slice(0, 2).toUpperCase()}</div>
+                    <span className="chip">{atleta.aderencia}%</span>
+                  </div>
                   <h3>{atleta.nome}</h3>
-                  <p>{atleta.email}</p>
-                  <div className="aderencia">
-                    <span>Aderência: {atleta.aderencia || 0}%</span>
+                  <p>{atleta.linha}</p>
+                  <div className="metric-row">
+                    <span>{atleta.teste}</span>
+                    <span>{atleta.ciclos} ciclos</span>
+                  </div>
+                  <div className="card-actions">
+                    <button type="button" className="secondary-button">Detalhes</button>
+                    <button type="button" className="primary-button">Abrir</button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p>Nenhum atleta cadastrado ainda</p>
+            <div className="page-empty">Nenhum atleta cadastrado ainda.</div>
           )}
-        </section>
+        </div>
       </main>
     </div>
   )

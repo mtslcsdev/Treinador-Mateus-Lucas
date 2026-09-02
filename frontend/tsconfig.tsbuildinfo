@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/contexts/authcontext.tsx","./src/contexts/supabasecontext.tsx","./src/pages/detalheatleta.tsx","./src/pages/loginpage.tsx","./src/pages/paineltreinador.tsx","./src/pages/relatorioatleta.tsx","./src/services/api.ts","./src/services/supabase.ts"],"version":"5.9.3"}

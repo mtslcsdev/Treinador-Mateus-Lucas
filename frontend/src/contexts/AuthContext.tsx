@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import type { User } from '@supabase/supabase-js'
 import { supabase } from '../services/supabase'
 
 interface AuthContextType {
   isAuthenticated: boolean
-  user: any
+  user: User | null
   loading: boolean
   login: (email: string, senha: string) => Promise<void>
   logout: () => Promise<void>
@@ -17,7 +18,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkAuth()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setIsAuthenticated(true)
         setUser(session.user)

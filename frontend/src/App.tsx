@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import { ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { SupabaseProvider } from './contexts/SupabaseContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -16,8 +16,11 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Carregando...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f0f4f8' }}>
+        <div style={{ textAlign: 'center', color: '#0f3a7d', fontWeight: 700 }}>
+          <div style={{ fontSize: 24, marginBottom: 8 }}>🏃</div>
+          <div>Carregando painel...</div>
+        </div>
       </div>
     )
   }
