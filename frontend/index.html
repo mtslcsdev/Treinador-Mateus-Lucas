@@ -6,73 +6,1531 @@
   <title>Treinador Mateus Lucas</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./src/styles/styles.css">
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
-  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
-  <script src="./src/app/data.js"></script>
-  <script src="./src/app/utils.js"></script>
 </head>
 <body>
   <div id="root"></div>
 
-  <!-- Core Components -->
-  <script type="text/babel" src="./src/components/core/Icon.jsx"></script>
-  <script type="text/babel" src="./src/components/core/Button.jsx"></script>
-  <script type="text/babel" src="./src/components/core/IconButton.jsx"></script>
-  <script type="text/babel" src="./src/components/core/Input.jsx"></script>
-  <script type="text/babel" src="./src/components/core/Select.jsx"></script>
-  <script type="text/babel" src="./src/components/core/Toggle.jsx"></script>
-  <script type="text/babel" src="./src/components/core/Card.jsx"></script>
-  <script type="text/babel" src="./src/components/core/SectionHeader.jsx"></script>
-  <script type="text/babel" src="./src/components/core/EmptyState.jsx"></script>
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 
-  <!-- Feedback Components -->
-  <script type="text/babel" src="./src/components/feedback/TrainingTypeBadge.jsx"></script>
-  <script type="text/babel" src="./src/components/feedback/PhaseBadge.jsx"></script>
-  <script type="text/babel" src="./src/components/feedback/FeedbackChip.jsx"></script>
-  <script type="text/babel" src="./src/components/feedback/Toast.jsx"></script>
-  <script type="text/babel" src="./src/components/feedback/ConfirmModal.jsx"></script>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-  <!-- Data Components -->
-  <script type="text/babel" src="./src/components/data/ZoneCard.jsx"></script>
-  <script type="text/babel" src="./src/components/data/ProgressRing.jsx"></script>
-  <script type="text/babel" src="./src/components/data/Sparkline.jsx"></script>
-  <script type="text/babel" src="./src/components/data/VolumeChart.jsx"></script>
-  <script type="text/babel" src="./src/components/data/AthleteCard.jsx"></script>
-  <script type="text/babel" src="./src/components/data/CycleCard.jsx"></script>
-  <script type="text/babel" src="./src/components/data/WorkoutCard.jsx"></script>
-  <script type="text/babel" src="./src/components/data/DayCard.jsx"></script>
-  <script type="text/babel" src="./src/components/data/StatItem.jsx"></script>
-  <script type="text/babel" src="./src/components/data/DashboardStatCard.jsx"></script>
-  <script type="text/babel" src="./src/components/data/ExecutionStats.jsx"></script>
-  <script type="text/babel" src="./src/components/data/WorkoutsTable.jsx"></script>
+    // ============ STORAGE ============
+    const storage = {
+      save: (key, data) => localStorage.setItem(key, JSON.stringify(data)),
+      load: (key, def = null) => { try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; } },
+      export: () => localStorage.getItem('treinador-data') ? JSON.parse(localStorage.getItem('treinador-data')) : null,
+      clear: () => localStorage.clear()
+    };
 
-  <!-- Form Components -->
-  <script type="text/babel" src="./src/components/forms/QuickAdd.jsx"></script>
-  <script type="text/babel" src="./src/components/forms/WorkoutBuilder.jsx"></script>
-  <script type="text/babel" src="./src/components/forms/WorkoutLibrary.jsx"></script>
-  <script type="text/babel" src="./src/components/forms/CopyWorkoutDialog.jsx"></script>
-  <script type="text/babel" src="./src/components/forms/WorkoutFeedbackForm.jsx"></script>
+    // ============ UTILS ============
+    function zoneTable(test) {
+      if (!test) return null;
+      const parts = test.split(':').map(Number);
+      if (parts.length !== 2) return null;
+      const m = parts[0], s = parts[1], t = m * 60 + s;
+      return {
+        Z5: { min: t - 20, max: t },
+        Z4: { min: t, max: t + 20 },
+        Z3: { min: t + 20, max: t + 40 },
+        Z2: { min: t + 40, max: t + 60 },
+        Z1: { min: t + 60, max: t + 80 }
+      };
+    }
 
-  <!-- More Data Components -->
-  <script type="text/babel" src="./src/components/data/CycleGrid.jsx"></script>
+    function fmtPace(s) {
+      const min = Math.floor(s / 60), sec = s % 60;
+      return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
 
-  <!-- More Feedback Components -->
-  <script type="text/babel" src="./src/components/feedback/RaceTargetBanner.jsx"></script>
-  <script type="text/babel" src="./src/components/feedback/ValidationItem.jsx"></script>
+    function fmtSpeed(s) {
+      return (3600 / s).toFixed(2);
+    }
 
-  <!-- Navigation Components -->
-  <script type="text/babel" src="./src/components/navigation/AppHeader.jsx"></script>
-  <script type="text/babel" src="./src/components/navigation/Breadcrumb.jsx"></script>
-  <script type="text/babel" src="./src/components/navigation/WeekNav.jsx"></script>
-  <script type="text/babel" src="./src/components/navigation/Sidebar.jsx"></script>
-  <script type="text/babel" src="./src/components/navigation/Drawer.jsx"></script>
+    function hms(seconds) {
+      if (seconds < 3600) {
+        const min = Math.floor(seconds / 60), sec = seconds % 60;
+        return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      }
+      const h = Math.floor(seconds / 3600), min = Math.floor((seconds % 3600) / 60), sec = seconds % 60;
+      return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
 
-  <!-- Screens -->
-  <script type="text/babel" src="./src/app/screens.jsx"></script>
+    function parseWorkout(text, zones) {
+      if (!text || !zones) return null;
+      const lower = text.toLowerCase().trim();
+      const distMatch = lower.match(/(\d+(?:\.\d+)?)\s*k/);
+      const distance = distMatch ? parseFloat(distMatch[1]) : parseFloat(lower.match(/\d+/)?.[0] || 6);
 
-  <!-- App -->
-  <script type="text/babel" src="./src/app/app.jsx"></script>
+      if (distance <= 0 || distance > 100) return null;
+
+      const tipo = lower.includes('lev') ? 'leve' : lower.includes('long') ? 'longao' : lower.includes('inter') ? 'intervalado' : lower.includes('progr') ? 'progressivo' : 'fartlek';
+      const match = lower.match(/z([0-5])/);
+      const zona = match ? 'Z' + match[1] : 'Z2';
+      const z = zones[zona];
+      if (!z) return null;
+      const minSecs = distance * z.min;
+      const maxSecs = distance * z.max;
+      return { tipo, zona, dist: distance, min: minSecs, max: maxSecs, minTxt: hms(minSecs), maxTxt: hms(maxSecs), resumo: `${distance}km ${zona}` };
+    }
+
+    function downloadJSON(data, filename) {
+      const json = JSON.stringify(data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function uploadJSON(file, onLoad) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          onLoad(data);
+        } catch {
+          onLoad(null);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // ============ CORE COMPONENTS ============
+    function Icon({ name, size = 18, strokeWidth = 1.75, color, style }) {
+      const iconName = name.split('-').map((w, i) => i === 0 ? w : w.charAt(0).toUpperCase() + w.slice(1)).join('');
+      const IconComponent = lucide[iconName];
+      if (!IconComponent) return <span style={{ width: size, height: size, display: 'inline-block', ...style }}>◯</span>;
+      return React.createElement(IconComponent, { size, strokeWidth, color, style });
+    }
+
+    function Button({ variant = 'primary', size = 'md', disabled = false, fullWidth = false, type = 'button', onClick, children, style }) {
+      const variantStyles = {
+        primary: { background: 'var(--primary)', color: 'var(--text-on-primary)' },
+        success: { background: 'var(--success)', color: 'var(--text-on-primary)' },
+        danger: { background: 'var(--danger)', color: 'var(--text-on-primary)' },
+        ghost: { background: 'transparent', color: 'var(--primary)', border: '1px solid var(--border)' },
+        header: { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.95)', border: 'none' },
+        export: { background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none' }
+      };
+      const sizeStyles = { sm: { padding: '6px 12px', fontSize: '12px' }, md: { padding: '8px 16px', fontSize: '13px' }, lg: { padding: '10px 20px', fontSize: '13px' } };
+      return <button type={type} disabled={disabled} onClick={onClick} style={{ borderRadius: 'var(--radius-sm)', fontWeight: 'var(--weight-semibold)', cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all var(--duration-base)', display: fullWidth ? 'block' : 'inline-block', width: fullWidth ? '100%' : 'auto', opacity: disabled ? 0.45 : 1, border: 'none', ...variantStyles[variant], ...sizeStyles[size], ...style }}>{children}</button>;
+    }
+
+    function IconButton({ icon, tone = 'neutral', size = 32, title, disabled = false, onClick, style }) {
+      const toneStyles = { neutral: { color: 'var(--text-secondary)' }, danger: { color: 'var(--danger)' }, primary: { color: 'var(--primary)' }, success: { color: 'var(--success)' }, onDark: { color: 'rgba(255,255,255,0.8)' } };
+      return <button style={{ width: size, height: size, minWidth: size, minHeight: size, borderRadius: 'var(--radius-round)', border: 'none', background: 'transparent', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', ...toneStyles[tone], opacity: disabled ? 0.45 : 1, ...style }} disabled={disabled} onClick={onClick} title={title}><Icon name={icon} size={20} /></button>;
+    }
+
+    function Input({ value, onChange, placeholder, label, mono = false, onDark = false, type = 'text', style }) {
+      return <div>{label && <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'var(--weight-semibold)', color: onDark ? 'rgba(255,255,255,0.8)' : 'var(--text-primary)' }}>{label}</label>}<input type={type} value={value} onChange={onChange} placeholder={placeholder} style={{ width: '100%', padding: '8px 12px', fontSize: '13.5px', fontFamily: mono ? 'var(--font-mono)' : 'var(--font-sans)', letterSpacing: mono ? '1px' : '0', border: '1.5px solid var(--input-border)', borderRadius: 'var(--radius-sm)', backgroundColor: onDark ? 'rgba(255,255,255,0.08)' : 'var(--input-bg)', color: onDark ? 'rgba(255,255,255,0.95)' : 'var(--text-primary)', boxSizing: 'border-box', outline: 'none', ...style }} /></div>;
+    }
+
+    function Card({ children, padding = '2rem', variant = 'surface', style }) {
+      const v = variant === 'navy' ? { background: 'linear-gradient(135deg, var(--header-gradient-from) 0%, var(--header-gradient-to) 100%)', borderColor: 'transparent', color: 'white' } : { background: 'var(--card-bg)', borderColor: 'var(--border)' };
+      return <div style={{ background: v.background, borderRadius: 'var(--radius-card)', border: `1px solid ${v.borderColor}`, padding, boxShadow: 'var(--shadow-card)', color: v.color || 'inherit', ...style }}>{children}</div>;
+    }
+
+    function SectionHeader({ title, subtitle, actions, style }) {
+      return <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '20px', marginBottom: '20px', ...style }}><div><h2 style={{ fontSize: 'var(--text-16)', fontWeight: 'var(--weight-bold)', margin: '0 0 6px 0' }}>{title}</h2>{subtitle && <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0 }}>{subtitle}</p>}</div>{actions && <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{actions}</div>}</div>;
+    }
+
+    function Toast({ kind = 'sucesso', children }) {
+      const kindStyles = { sucesso: { bg: 'var(--success-light)', fg: 'var(--success)', icon: 'check-circle' }, erro: { bg: 'var(--danger-light)', fg: 'var(--danger)', icon: 'alert-circle' }, aviso: { bg: 'var(--warning-light)', fg: 'var(--warning)', icon: 'triangle-alert' }, info: { bg: 'var(--primary-light)', fg: 'var(--primary)', icon: 'info' } };
+      const k = kindStyles[kind];
+      return <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px 16px', backgroundColor: k.bg, color: k.fg, borderRadius: 'var(--radius-sm)', fontSize: '13.5px', fontWeight: 'var(--weight-medium)', boxShadow: 'var(--shadow-md)', animation: 'slideIn 0.2s ease-out' }}><Icon name={k.icon} size={18} color={k.fg} />{children}</div>;
+    }
+
+    function ProgressRing({ value = 0, size = 52, thickness = 4, label }) {
+      const radius = (size - thickness) / 2, circumference = radius * 2 * Math.PI, progress = (value / 100) * circumference;
+      let color = 'var(--danger)';
+      if (value >= 80) color = 'var(--success)';
+      else if (value >= 60) color = 'var(--warning)';
+      return <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}><svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}><circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--gray-200)" strokeWidth={thickness} /><circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={thickness} strokeDasharray={circumference} strokeDashoffset={circumference - progress} strokeLinecap="round" style={{ transition: 'stroke-dashoffset var(--duration-slow)' }} /></svg>{label && <span style={{ fontSize: '12px', fontWeight: 'var(--weight-semibold)', color: 'var(--text-secondary)' }}>{label}</span>}</div>;
+    }
+
+    function ZoneCard({ zone = 'Z1', pace, speed }) {
+      const zoneColors = { Z1: 'var(--z1-on-dark)', Z2: 'var(--z2-on-dark)', Z3: 'var(--z3-on-dark)', Z4: 'var(--z4-on-dark)', Z5: 'var(--z5-on-dark)' };
+      const zoneEmoji = { Z1: '🟢', Z2: '🔵', Z3: '🟡', Z4: '🟠', Z5: '🔴' };
+      return <div style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', borderRadius: 'var(--radius-card)', padding: '16px', border: '1px solid rgba(255,255,255,0.15)', borderLeft: `3px solid ${zoneColors[zone]}` }}><div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}><span style={{ fontSize: '20px' }}>{zoneEmoji[zone]}</span><span style={{ fontWeight: 'var(--weight-semibold)', color: 'rgba(255,255,255,0.9)' }}>{zone}</span></div>{pace && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-22)', fontWeight: 'var(--weight-black)', color: zoneColors[zone], marginBottom: '6px' }}>{pace}</div>}{speed && <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontFamily: 'var(--font-mono)' }}>{speed}</div>}</div>;
+    }
+
+    function TrainingTypeBadge({ type, children }) {
+      const typeStyles = { leve: { bg: '#dcfce7', fg: '#15803d' }, fartlek: { bg: '#dbeafe', fg: '#0369a1' }, progressivo: { bg: '#fef3c7', fg: '#92400e' }, intervalado: { bg: '#fecaca', fg: '#991b1b' }, longao: { bg: '#bbf7d0', fg: '#065f46' } };
+      const t = typeStyles[type] || { bg: '#f3f4f6', fg: '#374151' };
+      return <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: 'var(--radius-pill)', fontSize: '10px', fontWeight: 'var(--weight-semibold)', backgroundColor: t.bg, color: t.fg }}>{children || type}</span>;
+    }
+
+    function Breadcrumb({ items, onNavigate }) {
+      if (!items || items.length <= 1) return null;
+      return <nav style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)', padding: '12px 3rem', fontSize: '13px', marginBottom: '0' }}>
+        <div style={{ maxWidth: 'var(--max-width-desktop)', margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {i > 0 && <span style={{ color: 'var(--text-muted)' }}>›</span>}
+              {i < items.length - 1 ? (
+                <button onClick={() => onNavigate?.(i)} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: 'var(--weight-medium)', padding: 0, font: 'inherit' }}>{item}</button>
+              ) : (
+                <span style={{ color: 'var(--text-secondary)', fontWeight: 'var(--weight-medium)' }}>{item}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </nav>;
+    }
+
+    function Sparkline({ data, width = 100, height = 30 }) {
+      if (!data || data.length < 2) return null;
+      const max = Math.max(...data.filter(v => v > 0));
+      const min = 0;
+      const range = max - min || 1;
+      const pointWidth = width / (data.length - 1);
+      const points = data.map((v, i) => ({
+        x: i * pointWidth,
+        y: height - ((v - min) / range) * (height - 4) - 2
+      }));
+      const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+      const minV = Math.min(...data.filter(v => v > 0));
+      const maxV = Math.max(...data);
+      return <svg width={width} height={height} style={{ display: 'block' }}><path d={pathData} stroke='var(--primary)' strokeWidth='1.5' fill='none' />{data.map((v, i) => v > 0 && (i === data.indexOf(minV) || i === data.indexOf(maxV)) && <circle key={i} cx={points[i].x} cy={points[i].y} r='2' fill={i === data.indexOf(maxV) ? 'var(--success)' : 'var(--warning)'} />)}</svg>;
+    }
+
+    // ============ SCREENS ============
+    function DashboardScreen({ onSelectAtleta, onAddToast, onNewAthleta }) {
+      const atletas = [
+        { id: '1', nome: 'Allan', aderencia: 78, teste: '05:00', trend: [22, 28, 31, 18, 0, 26, 34, 24], proximo: 'Ter 04/08 · Progressivo 8 km', ciclos: 2, notas: '' },
+        { id: '2', nome: 'Jessyka Carvalho', aderencia: 92, teste: '05:40', trend: [28, 32, 35, 30, 0, 31, 36, 33], proximo: 'Qui 06/08 · Longão 14 km', ciclos: 2, notas: '' },
+        { id: '3', nome: 'Amanda Sousa', aderencia: 86, teste: '04:50', trend: [25, 28, 31, 26, 0, 29, 33, 28], proximo: 'Sex 08/08 · Ritmado 10 km', ciclos: 1, notas: '' },
+        { id: '4', nome: 'Pedro Henrique', aderencia: 78, teste: '05:00', trend: [20, 25, 28, 22, 0, 24, 30, 26], proximo: 'Qua 05/08 · Fartlek 6 km', ciclos: 2, notas: '' },
+        { id: '5', nome: 'Suzy', aderencia: 45, teste: '06:10', trend: [12, 14, 15, 10, 0, 12, 16, 13], proximo: 'Ter 04/08 · Leve 5 km', ciclos: 1, notas: '' },
+        { id: '6', nome: 'Eugênio Gabriel', aderencia: 61, teste: '05:25', trend: [18, 21, 24, 19, 0, 22, 26, 21], proximo: 'Seg 03/08 · Intervalado 8 km', ciclos: 2, notas: '' },
+      ].sort((a, b) => b.aderencia - a.aderencia);
+      const mediaAderencia = Math.round(atletas.reduce((s, a) => s + a.aderencia, 0) / atletas.length);
+      const volume = 147;
+
+      return <>
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Semana de 03 a 09 de agosto</p>
+          <h1 style={{ margin: 0, fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>Visão geral</h1>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>{atletas.length} atletas · 10 ciclos ativos</p>
+        </div>
+
+        {(() => {
+          const totalTreinos = atletas.reduce((s, a) => s + (a.ciclosList || []).reduce((cs, c) => cs + c.semanas.reduce((ss, s) => ss + s.treinos.length, 0), 0), 0);
+          const treineosExecutados = atletas.reduce((s, a) => s + (a.ciclosList || []).reduce((cs, c) => cs + c.semanas.reduce((ss, s) => ss + s.treinos.filter(t => t.executado).length, 0), 0), 0);
+          const semnasVazias = atletas.reduce((s, a) => s + (a.ciclosList || []).reduce((cs, c) => cs + c.semanas.filter(sem => sem.treinos.length === 0).length, 0), 0);
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              <Card>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '8px', textTransform: 'uppercase' }}>Aderência média</div>
+                <div style={{ fontSize: '32px', fontWeight: 'var(--weight-black)', color: 'var(--warning)', marginBottom: '8px' }}>{mediaAderencia}%</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{atletas.filter(a => a.aderencia < 50).length} atleta{atletas.filter(a => a.aderencia < 50).length !== 1 ? 's' : ''} abaixo de 50%</div>
+              </Card>
+              <Card>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '8px', textTransform: 'uppercase' }}>Volume da semana</div>
+                <div style={{ fontSize: '32px', fontWeight: 'var(--weight-black)', color: 'var(--primary)', marginBottom: '8px' }}>{volume} km</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Acumulado esta semana</div>
+              </Card>
+              <Card>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '8px', textTransform: 'uppercase' }}>Treinos prescritos</div>
+                <div style={{ fontSize: '32px', fontWeight: 'var(--weight-black)', color: 'var(--primary)', marginBottom: '8px' }}>{totalTreinos}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{treineosExecutados} feitos · {totalTreinos - treineosExecutados} pendentes</div>
+              </Card>
+              <Card>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '8px', textTransform: 'uppercase' }}>Semanas vazias</div>
+                <div style={{ fontSize: '32px', fontWeight: 'var(--weight-black)', color: 'var(--warning)', marginBottom: '8px' }}>{semnasVazias}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Precisa preencher</div>
+              </Card>
+            </div>
+          );
+        })()}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <Card style={{ gridColumn: 'span 1' }}>
+            <SectionHeader title="Atletas" subtitle="Ordenado por aderência — quem precisa de atenção primeiro" actions={<Button variant="success" onClick={onNewAthleta}><Icon name="plus" size={16} /> Novo atleta</Button>} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {atletas.map(a => (
+                <div key={a.id} onClick={() => onSelectAtleta(a.id)} style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', borderRadius: 'var(--radius-card)', border: a.aderencia < 50 ? '1px solid var(--error)' : '1px solid var(--border)', cursor: 'pointer', transition: 'all var(--duration-base)', background: a.aderencia < 50 ? 'rgba(239,68,68,0.05)' : 'transparent' }}>
+                  <ProgressRing value={a.aderencia} size={40} thickness={3} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 'var(--weight-semibold)', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {a.nome}
+                      {a.aderencia < 50 && <span style={{ fontSize: '10px', fontWeight: 'var(--weight-bold)', background: 'var(--error)', color: 'white', padding: '2px 6px', borderRadius: '3px' }}>⚠ BAIXA</span>}
+                    </div>
+                    <Sparkline data={a.trend} width={80} height={20} />
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 'var(--weight-bold)' }}>{a.teste}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>Teste 3km</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+          <Card>
+            <SectionHeader title="Volume por semana" subtitle="Ciclo ativo · 147 km total" />
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'flex-end', height: '120px', justifyContent: 'center' }}>
+              {semanas.map((s, i) => {
+                const vol = s.treinos.reduce((sum, t) => sum + t.dist, 0);
+                const maxVol = Math.max(...semanas.map(sem => sem.treinos.reduce((sum, t) => sum + t.dist, 0)), 33.8);
+                return (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', minHeight: '100%' }}>
+                    <div style={{ height: `${(vol / maxVol) * 100}%`, width: '100%', background: 'linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%)', borderRadius: '4px 4px 0 0', minHeight: '4px' }} />
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 'var(--weight-bold)', color: 'var(--primary)' }}>{vol.toFixed(1)}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>S{i + 1}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      </>;
+    }
+
+    function RosterScreen({ atletas, onSelectAtleta, onAddToast, onNewAthleta }) {
+      const sorted = [...atletas].sort((a, b) => b.aderencia - a.aderencia);
+      return <>
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ margin: '0 0 4px 0', fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>Atletas</h1>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>{atletas.length} atletas cadastrados</p>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+          <Button variant="success" onClick={onNewAthleta}><Icon name="plus" size={16} /> Novo atleta</Button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+          {sorted.map(a => (
+            <div key={a.id} onClick={() => onSelectAtleta(a.id)} style={{ background: 'var(--card-bg)', borderRadius: 'var(--radius-card)', border: '1px solid var(--border)', padding: '20px', cursor: 'pointer', transition: 'all var(--duration-base)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%)' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>{a.nome}</h3>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>📅 {a.proximo}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button onClick={(e) => { e.stopPropagation(); if (window.confirm(`Remover atleta "${a.nome}"?\n\nEsta ação não pode ser desfeita.`)) { setAtletas(atletas.filter(at => at.id !== a.id)); addToast('sucesso', 'Atleta removido'); } }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--error)', padding: '4px', display: 'flex', alignItems: 'center' }} title="Remover">
+                    <Icon name="trash-2" size={16} />
+                  </button>
+                  <Icon name="chevron-right" size={20} color="var(--text-muted)" />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--bg-muted)', padding: '10px', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '8px', textTransform: 'uppercase' }}>Aderência</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 'var(--weight-black)', color: a.aderencia >= 80 ? 'var(--success)' : a.aderencia >= 60 ? 'var(--warning)' : 'var(--danger)' }}>{a.aderencia}%</div>
+                  </div>
+                </div>
+                <div style={{ background: 'var(--bg-muted)', padding: '10px', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '8px', textTransform: 'uppercase' }}>Teste 3km</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', fontWeight: 'var(--weight-bold)', color: 'var(--primary)' }}>{a.teste}</div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '6px', textTransform: 'uppercase' }}>Últimas 8 semanas</div>
+                <Sparkline data={a.trend} width="100%" height={24} />
+              </div>
+
+              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+                {a.ciclos} ciclo{a.ciclos !== 1 ? 's' : ''} ativo{a.ciclos !== 1 ? 's' : ''}
+              </div>
+            </div>
+          ))}
+        </div>
+      </>;
+    }
+
+    function AthleteScreen({ atletaId, atletas, onBack, onSelectCiclo, onOpenNotes, onNewCiclo, onUpdateAtleta, onAddToast }) {
+      const atleta = atletas.find(a => a.id === atletaId);
+      if (!atleta) return null;
+
+      const [testPace, setTestPace] = useState(atleta.teste);
+      const zones = zoneTable(testPace);
+
+      const handleCalculate = () => {
+        const isValid = /^\d{1,2}:\d{2}$/.test(testPace);
+        const [min, sec] = testPace.split(':').map(Number);
+        const isValidRange = min >= 2 && min <= 10 && sec >= 0 && sec <= 59;
+
+        if (!isValid) {
+          onAddToast?.('erro', 'Formato inválido! Use MM:SS (ex: 05:00)');
+          return;
+        }
+        if (!isValidRange) {
+          onAddToast?.('erro', 'Tempo inválido! Deve estar entre 02:00 e 10:59');
+          return;
+        }
+        if (testPace !== atleta.teste) {
+          onUpdateAtleta(atletaId, { teste: testPace });
+          onAddToast?.('sucesso', 'Teste atualizado! Zonas recalculadas.');
+        } else {
+          onAddToast?.('info', 'Zonas calculadas para ' + testPace);
+        }
+      };
+
+      return <>
+        <div style={{ marginBottom: '24px' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: 'var(--weight-semibold)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Icon name="arrow-left" size={16} /> Atletas</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <h1 style={{ margin: '0 0 12px 0', fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>{atleta.nome}</h1>
+            <Button variant="ghost" onClick={onOpenNotes}><Icon name="sticky-note" size={16} /> Notas</Button>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px', flexWrap: 'wrap' }}>
+            <span>{(atleta.ciclosList || []).length} ciclo{(atleta.ciclosList || []).length !== 1 ? 's' : ''}</span>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <span>Aderência</span>
+              <input type="number" min="0" max="100" value={atleta.aderencia} onChange={(e) => {
+                let newValue = parseInt(e.target.value);
+                if (isNaN(newValue)) newValue = 0;
+                newValue = Math.max(0, Math.min(100, newValue));
+                const newTrend = [...(atleta.trend || []), newValue].slice(-8);
+                onUpdateAtleta(atletaId, { aderencia: newValue, trend: newTrend });
+              }} style={{ width: '50px', padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px' }} />
+              <span>%</span>
+            </div>
+            <span>Próx: <input type="text" value={atleta.proximo} onChange={(e) => onUpdateAtleta(atletaId, { proximo: e.target.value })} placeholder="Ex: Ter 04/08 · Prog 8km" style={{ padding: '4px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px', flex: 1, minWidth: '150px' }} /></span>
+          </div>
+        </div>
+
+        <Card variant="navy" style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <Icon name="zap" size={20} />
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'var(--weight-bold)', color: 'white' }}>Zonas de treino</h2>
+          </div>
+          <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>Incrementos de 20s · Z4 = pace do teste de 3km</p>
+
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '20px' }}>
+            <div>
+              <Input
+                value={testPace}
+                onChange={(e) => {
+                  setTestPace(e.target.value);
+                  const isValid = /^\d{1,2}:\d{2}$/.test(e.target.value);
+                  const [min, sec] = e.target.value.split(':').map(Number);
+                  const isValidRange = min >= 2 && min <= 10 && sec >= 0 && sec <= 59;
+                  if (e.target.value && !isValid) {
+                    // Mostra erro visualmente
+                  }
+                }}
+                placeholder="MM:SS"
+                label="Teste 3km"
+                onDark
+                mono
+                style={{ maxWidth: '200px', borderColor: testPace && !/^\d{1,2}:\d{2}$/.test(testPace) ? 'var(--danger)' : 'var(--input-border)' }}
+              />
+              {testPace && !/^\d{1,2}:\d{2}$/.test(testPace) && <span style={{ fontSize: '10px', color: 'var(--danger)', marginTop: '4px', display: 'block' }}>❌ Formato inválido (MM:SS)</span>}
+            </div>
+            <Button variant="header" onClick={handleCalculate}>Calcular</Button>
+          </div>
+
+          {zones ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
+              {['Z5', 'Z4', 'Z3', 'Z2', 'Z1'].map(zone => {
+                const z = zones[zone];
+                return <ZoneCard key={zone} zone={zone} pace={`${fmtPace(z.min)} a ${fmtPace(z.max)}`} speed={`${fmtSpeed(z.max)} a ${fmtSpeed(z.min)} km/h`} />;
+              })}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', padding: '40px 20px' }}>Digite o pace acima e clique Calcular</div>
+          )}
+        </Card>
+
+        <Card>
+          <SectionHeader title="Ciclos" subtitle="Selecione um ciclo para editar as semanas" actions={<div style={{ display: 'flex', gap: '8px' }}><Button variant="ghost" onClick={() => {
+            if ((atleta.ciclosList || []).length === 0) {
+              onAddToast('erro', 'Nenhum ciclo para copiar');
+            } else if ((atleta.ciclosList || []).length === 1) {
+              const ciclo = (atleta.ciclosList || [])[0];
+              const copyCiclo = { id: Date.now().toString(), nome: `${ciclo.nome} (Cópia)`, semanas: JSON.parse(JSON.stringify(ciclo.semanas)), volume: ciclo.volume, dataInicio: ciclo.dataInicio, prova: ciclo.prova };
+              onUpdateAtleta(atletaId, { ciclosList: [...(atleta.ciclosList || []), copyCiclo] });
+              onAddToast('sucesso', `Ciclo "${ciclo.nome}" duplicado!`);
+            } else {
+              onAddToast('info', 'Selecione um ciclo e clique em Copiar para cloná-lo');
+            }
+          }}><Icon name="copy" size={16} /> Copiar ciclo</Button><Button onClick={() => { if (!zones) { onAddToast?.('erro', 'Configure o teste de 3km antes de criar um ciclo'); } else { onNewCiclo(); } }}><Icon name="plus" size={16} /> Novo ciclo</Button></div>} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '14px' }}>
+            {(atleta.ciclosList || []).map(ciclo => (
+              <div key={ciclo.id} style={{ background: 'var(--card-bg)', borderRadius: 'var(--radius-card)', border: '1.5px solid var(--border)', padding: '16px', cursor: 'pointer' }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 'var(--weight-semibold)' }}>{ciclo.nome}</h4>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                  <span>📅 {ciclo.semanas.length} semanas</span>
+                  <span>🏃 {ciclo.semanas.reduce((s, sem) => s + sem.treinos.length, 0)} treinos</span>
+                </div>
+                <Button variant="success" fullWidth onClick={() => onSelectCiclo(ciclo.id)}>Abrir ciclo</Button>
+              </div>
+            ))}
+            {(!atleta.ciclosList || atleta.ciclosList.length === 0) && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
+                <p style={{ margin: '0 0 8px 0', fontWeight: 'var(--weight-semibold)' }}>Nenhum ciclo criado</p>
+                <p style={{ margin: 0, fontSize: '12px' }}>Clique em "Novo ciclo" para começar a planejar</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      </>;
+    }
+
+    function CycleScreen({ atletaId, cicloId, atletas, onBack, onAddToast, onUpdateAtleta }) {
+      const atleta = atletas.find(a => a.id === atletaId);
+      if (!atleta) return null;
+
+      const ciclosList = atleta.ciclosList || [];
+      const ciclo = ciclosList.find(c => c.id === cicloId);
+      if (!ciclo) return null;
+
+      const [tab, setTab] = useState('planilha');
+      const [quickAdd, setQuickAdd] = useState('');
+      const [preview, setPreview] = useState(null);
+      const [drawerOpen, setDrawerOpen] = useState(false);
+      const [drawerTab, setDrawerTab] = useState('quickadd');
+      const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
+      const [semanas, setSemanas] = useState(ciclo.semanas || []);
+      const [draggedFrom, setDraggedFrom] = useState(null);
+      const [provaOpen, setProvaOpen] = useState(false);
+      const [provaName, setProvaName] = useState(ciclo.prova?.nome || '');
+      const [provaDate, setProvaDate] = useState(ciclo.prova?.data || '');
+      const [editingTreino, setEditingTreino] = useState(null);
+      const [editForm, setEditForm] = useState({});
+      const [selectedDay, setSelectedDay] = useState('seg');
+      const daysOfWeek = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+      const dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+
+      const zones = zoneTable(atleta.teste);
+      const totalVolume = semanas.reduce((s, sem) => s + sem.treinos.reduce((t, tr) => t + tr.dist, 0), 0);
+
+      const handleQuickAddChange = (text) => {
+        setQuickAdd(text);
+        if (text && zones) {
+          const workouts = text.split(',').map(w => w.trim()).filter(w => w);
+          if (workouts.length === 0) {
+            setPreview(null);
+            return;
+          }
+          const parseds = workouts.map(w => parseWorkout(w, zones)).filter(p => p);
+          const failed = workouts.length - parseds.length;
+          if (parseds.length > 0) {
+            const preview_obj = parseds.length === 1 ? parseds[0] : { multi: true, workouts: parseds, resumo: `${parseds.length} treinos` };
+            if (failed > 0) {
+              preview_obj.warning = `⚠ ${failed} formato(s) inválido(s) ou distância fora do range (0-100km)`;
+            }
+            setPreview(preview_obj);
+          } else {
+            setPreview({ error: true, warning: `✗ Nenhum treino válido. Formato: "8k z2" ou "6x800 z4 int 2min"` });
+          }
+        } else {
+          setPreview(null);
+        }
+      };
+
+      const handleAddWorkout = () => {
+        if (preview?.error) {
+          return;
+        }
+        if (preview && semanas.length > 0) {
+          let newSemanas = [...semanas];
+          let count = 0;
+          if (preview.multi) {
+            preview.workouts.forEach((w, idx) => {
+              const dayIdx = (daysOfWeek.indexOf(selectedDay) + idx) % 7;
+              const day = daysOfWeek[dayIdx];
+              const newTreino = { id: Date.now().toString() + idx, dia: day.toUpperCase().slice(0, 3), tipo: w.tipo, dist: parseFloat(w.dist), zona: w.zona, resumo: w.resumo, executado: false };
+              newSemanas = newSemanas.map((s, i) => i === selectedWeekIdx ? { ...s, treinos: [...s.treinos, newTreino] } : s);
+              count++;
+            });
+          } else {
+            const newTreino = { id: Date.now().toString(), dia: selectedDay.toUpperCase().slice(0, 3), tipo: preview.tipo, dist: parseFloat(preview.dist), zona: preview.zona, resumo: preview.resumo, executado: false };
+            newSemanas = newSemanas.map((s, i) => i === selectedWeekIdx ? { ...s, treinos: [...s.treinos, newTreino] } : s);
+            count = 1;
+          }
+          setSemanas(newSemanas);
+          const newVolume = newSemanas.reduce((s, sem) => s + sem.treinos.reduce((t, tr) => t + tr.dist, 0), 0);
+          onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas, volume: newVolume } : c) });
+          onAddToast('sucesso', `${count} treino${count > 1 ? 's' : ''} adicionado${count > 1 ? 's' : ''} à ${semanas[selectedWeekIdx]?.nome}!`);
+          setQuickAdd('');
+          setPreview(null);
+          setDrawerOpen(false);
+        }
+      };
+
+      const handleAddFromLibrary = (nome, tipo, dist) => {
+        if (semanas.length > 0) {
+          const newTreino = { id: Date.now().toString(), dia: selectedDay.toUpperCase().slice(0, 3), tipo, dist: parseFloat(dist), zona: 'Z2', resumo: nome, executado: false };
+          const newSemanas = semanas.map((s, i) => i === selectedWeekIdx ? { ...s, treinos: [...s.treinos, newTreino] } : s);
+          setSemanas(newSemanas);
+          onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas } : c) });
+          onAddToast('sucesso', `"${nome}" adicionado à ${semanas[selectedWeekIdx]?.nome} (${selectedDay.toUpperCase()})!`);
+          setDrawerOpen(false);
+        }
+      };
+
+      const handleDragStart = (e, weekIdx, treinoId) => {
+        e.dataTransfer.effectAllowed = 'move';
+        setDraggedFrom({ weekIdx, treinoId });
+        e.dataTransfer.setData('text/plain', JSON.stringify({ weekIdx, treinoId }));
+      };
+
+      const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      };
+
+      const handleDrop = (e, targetWeekIdx) => {
+        e.preventDefault();
+        if (!draggedFrom) return;
+        const { weekIdx: sourceWeekIdx, treinoId } = draggedFrom;
+        if (sourceWeekIdx !== targetWeekIdx) {
+          const treino = semanas[sourceWeekIdx].treinos.find(t => t.id === treinoId);
+          if (treino) {
+            const newSemanas = semanas.map((s, i) => {
+              if (i === sourceWeekIdx) return { ...s, treinos: s.treinos.filter(t => t.id !== treinoId) };
+              if (i === targetWeekIdx) return { ...s, treinos: [...s.treinos, treino] };
+              return s;
+            });
+            setSemanas(newSemanas);
+            onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas } : c) });
+            onAddToast('sucesso', `Treino movido para ${newSemanas[targetWeekIdx].nome}! 🎯`);
+          }
+        }
+        setDraggedFrom(null);
+      };
+
+      const handleRemoveWorkout = (weekIdx, treinoId) => {
+        const newSemanas = semanas.map((s, i) => i === weekIdx ? { ...s, treinos: s.treinos.filter(t => t.id !== treinoId) } : s);
+        setSemanas(newSemanas);
+        const newVolume = newSemanas.reduce((s, sem) => s + sem.treinos.reduce((t, tr) => t + tr.dist, 0), 0);
+        onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas, volume: newVolume } : c) });
+        onAddToast('sucesso', 'Treino removido!');
+      };
+
+      const handleEditTreino = (weekIdx, treino) => {
+        setEditingTreino({ weekIdx, treino });
+        setEditForm({ ...treino });
+      };
+
+      const handleSaveEdit = () => {
+        if (editingTreino) {
+          const newSemanas = semanas.map((s, i) => {
+            if (i === editingTreino.weekIdx) {
+              return { ...s, treinos: s.treinos.map(t => t.id === editingTreino.treino.id ? editForm : t) };
+            }
+            return s;
+          });
+          setSemanas(newSemanas);
+          const newVolume = newSemanas.reduce((s, sem) => s + sem.treinos.reduce((t, tr) => t + tr.dist, 0), 0);
+          onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas, volume: newVolume } : c) });
+          onAddToast('sucesso', 'Treino atualizado!');
+          setEditingTreino(null);
+        }
+      };
+
+      const handleSaveProva = () => {
+        const novaProva = { nome: provaName, data: provaDate };
+        const volumeTotal = semanas.reduce((s, sem) => s + sem.treinos.reduce((t, tr) => t + tr.dist, 0), 0);
+        const updatedCicloList = ciclosList.map(c => {
+          if (c.id === cicloId) {
+            return { ...c, prova: novaProva, volume: volumeTotal, dataInicio: ciclo.dataInicio || new Date().toISOString().split('T')[0], semanas };
+          }
+          return c;
+        });
+        onUpdateAtleta(atletaId, { ciclosList: updatedCicloList });
+        onAddToast('sucesso', `Prova "${provaName}" definida!`);
+        setProvaOpen(false);
+      };
+
+      return <>
+        <div style={{ marginBottom: '24px' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontSize: '13px', fontWeight: 'var(--weight-semibold)', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}><Icon name="arrow-left" size={16} /> {atleta.nome}</button>
+          <h1 style={{ margin: '0 0 12px 0', fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>{ciclo.nome}</h1>
+          <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>{semanas.length} semanas · {semanas.reduce((s, sem) => s + sem.treinos.length, 0)} treinos · {totalVolume.toFixed(1)} km prescritos</p>
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button variant="ghost" onClick={() => setProvaOpen(true)}><Icon name="target" size={16} /> Prova alvo</Button>
+          </div>
+          <Button variant="export" onClick={() => window.print()}><Icon name="file-text" size={16} /> Relatório PDF</Button>
+        </div>
+
+        {(() => {
+          const volumeExecutado = semanas.reduce((s, sem) => s + sem.treinos.filter(t => t.executado).reduce((t, tr) => t + tr.dist, 0), 0);
+          const percentualExecutado = totalVolume > 0 ? Math.round((volumeExecutado / totalVolume) * 100) : 0;
+          const semanasVazias = semanas.filter(s => s.treinos.length === 0).length;
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              {[
+                { label: 'Volume prescrito', value: `${totalVolume.toFixed(1)} km`, icon: 'route' },
+                { label: 'Executados', value: `${volumeExecutado.toFixed(1)} km`, meta: `${percentualExecutado}% do planejado`, icon: 'check-circle-2' },
+                { label: 'Semanas vazias', value: semanasVazias, meta: 'Precisa preencher', icon: 'triangle-alert' },
+                { label: 'Prova alvo', value: ciclo.prova?.nome || 'Não definida', meta: ciclo.prova?.data ? new Date(ciclo.prova.data).toLocaleDateString('pt-BR') : '', icon: 'target' }
+              ].map((card, i) => (
+                <Card key={i}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 'var(--weight-semibold)', marginBottom: '12px', textTransform: 'uppercase' }}>{card.label}</div>
+                  <div style={{ fontSize: '27px', fontWeight: 'var(--weight-black)', color: 'var(--primary)', marginBottom: '4px' }}>{card.value}</div>
+                  {card.meta && <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{card.meta}</div>}
+                </Card>
+              ))}
+            </div>
+          );
+        })()}
+        </div>
+
+        <Card style={{ marginBottom: '24px', padding: 0 }}>
+          <div style={{ display: 'flex', gap: '8px', padding: '16px', background: 'var(--bg-muted)', borderBottom: '1px solid var(--border)' }}>
+            {['Planilha', 'Semanas'].map((name, i) => (
+              <button key={i} onClick={() => setTab(name.toLowerCase())} style={{ padding: '8px 16px', borderRadius: 'var(--radius-sm)', border: tab === name.toLowerCase() ? 'none' : '1px solid var(--border)', background: tab === name.toLowerCase() ? 'white' : 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 'var(--weight-semibold)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Icon name={name === 'Planilha' ? 'table-2' : 'list'} size={16} />
+                {name}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ padding: '20px' }}>
+            {tab === 'planilha' && (
+              <>
+                <div style={{ background: 'var(--bg-muted)', padding: '12px', borderRadius: 'var(--radius-card)', marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', fontWeight: 'var(--weight-semibold)' }}>Adição rápida</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input type="text" value={quickAdd} onChange={(e) => handleQuickAddChange(e.target.value)} placeholder="Ex: 8k z2, 6x800 z4, 40min z1" style={{ flex: 1, padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px' }} />
+                    <Button onClick={handleAddWorkout} disabled={!preview || preview.error}>Adicionar</Button>
+                  </div>
+                  {preview && <div style={{ marginTop: '12px', padding: '12px', background: preview.error ? 'rgba(239,68,68,0.1)' : 'var(--primary-light)', borderRadius: 'var(--radius-sm)', fontSize: '12px', color: preview.error ? 'var(--error)' : 'var(--primary-on-tint)', borderLeft: `3px solid ${preview.error ? 'var(--error)' : preview.warning ? 'var(--warning)' : 'var(--success)'}` }}>
+                    {preview.error ? preview.warning : preview.multi ? `✓ ${preview.workouts.map(w => w.resumo).join(' + ')}${preview.warning ? ` — ${preview.warning}` : ''}` : `✓ ${preview.resumo}${preview.minTxt ? ` · ${preview.minTxt} a ${preview.maxTxt}` : ''}${preview.warning ? ` — ${preview.warning}` : ''}`}
+                  </div>}
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-muted)', borderBottom: '1px solid var(--border)' }}>
+                        <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'var(--weight-semibold)' }}>Semana</th>
+                        {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'].map(d => <th key={d} style={{ padding: '12px', textAlign: 'center', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase' }}>{d}</th>)}
+                        <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'var(--weight-semibold)' }}>Volume</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {semanas.map((sem, i) => {
+                        const volume = sem.treinos.reduce((s, t) => s + t.dist, 0);
+                        return (
+                          <tr key={sem.id} style={{ borderBottom: '1px solid var(--border)', borderLeft: `4px solid ${sem.treinos.length > 0 ? 'var(--accent)' : 'var(--warning)'}` }}>
+                            <td style={{ padding: '12px' }}>
+                              <div style={{ fontWeight: 'var(--weight-semibold)', marginBottom: '2px' }}>{sem.nome}</div>
+                              <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{sem.sub}</div>
+                            </td>
+                            {['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map(dia => {
+                              const treino = sem.treinos.find(t => t.dia === dia.toUpperCase().slice(0, 3));
+                              return (
+                                <td key={dia} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, i)} style={{ padding: '8px', textAlign: 'center', borderRight: '1px solid var(--border)', minHeight: '80px', verticalAlign: 'top', background: treino ? 'rgba(24,115,212,0.05)' : 'transparent', cursor: treino ? 'grab' : 'default', position: 'relative' }}>
+                                  {treino && <div draggable onDragStart={(e) => handleDragStart(e, i, treino.id)} style={{ padding: '6px 8px', borderRadius: 'var(--radius-xs)', background: 'var(--primary-light)', border: '1px solid var(--primary-border)', fontSize: '10px', fontWeight: 'var(--weight-semibold)', color: 'var(--primary-on-tint)', cursor: 'grab', opacity: draggedFrom?.treinoId === treino.id ? 0.5 : 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '4px', position: 'relative' }}>
+                                    <span>{treino.resumo}</span>
+                                    <IconButton icon="x" tone="danger" size={14} style={{ marginLeft: 'auto', minWidth: '14px' }} onClick={() => handleRemoveWorkout(i, treino.id)} />
+                                  </div>}
+                                </td>
+                              );
+                            })}
+                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'var(--weight-semibold)' }}>{volume.toFixed(1)} km</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+
+            {tab === 'semanas' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {semanas.map((sem, i) => {
+                  const vol = sem.treinos.reduce((s, t) => s + t.dist, 0);
+                  const hasWorkouts = sem.treinos.length > 0;
+                  return (
+                    <div key={sem.id} style={{ borderRadius: 'var(--radius-card)', overflow: 'hidden', border: `1px solid ${hasWorkouts ? 'var(--border)' : 'var(--warning-light)'}`, background: hasWorkouts ? 'var(--card-bg)' : 'rgba(245,158,11,0.04)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'var(--bg-muted)', borderBottom: '1px solid var(--border)' }}>
+                        <div>
+                          <h3 style={{ margin: 0, fontWeight: 'var(--weight-semibold)', fontSize: '15px' }}>{sem.nome}</h3>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>{sem.treinos.length} treino{sem.treinos.length !== 1 ? 's' : ''} · {vol.toFixed(1)} km</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {!hasWorkouts && <Button variant="ghost" size="sm" onClick={() => setDrawerOpen(true)}><Icon name="library" size={14} /> Biblioteca</Button>}
+                          <Button variant={hasWorkouts ? 'ghost' : 'success'} size="sm" onClick={() => setDrawerOpen(true)}><Icon name="plus" size={14} /></Button>
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '16px' }} className={sem.treinos.length === 0 ? 'week-empty' : ''}>
+                        {sem.treinos.length === 0 ? (
+                          <div style={{ textAlign: 'center', padding: '24px 20px', color: 'var(--text-secondary)' }}>
+                            <div style={{ fontSize: '36px', marginBottom: '12px' }}>📅</div>
+                            <p style={{ margin: '0 0 8px 0', fontWeight: 'var(--weight-semibold)' }}>Semana sem treinos</p>
+                            <p style={{ margin: 0, fontSize: '12px' }}>Monte um treino estruturado ou reaproveite um da biblioteca</p>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {sem.treinos.map((t, j) => (
+                              <div key={t.id} style={{ padding: '12px', borderRadius: 'var(--radius-sm)', border: t.executado ? '2px solid var(--success)' : '1px solid var(--border)', background: t.executado ? 'rgba(16,185,129,0.12)' : 'var(--bg-surface)', display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '12px' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                                    <input type="checkbox" checked={t.executado || false} onChange={(e) => {
+                                      const newSemanas = semanas.map((s, idx) => {
+                                        if (idx === i) {
+                                          return { ...s, treinos: s.treinos.map(tr => tr.id === t.id ? { ...tr, executado: e.target.checked } : tr) };
+                                        }
+                                        return s;
+                                      });
+                                      setSemanas(newSemanas);
+                                      const newVolume = newSemanas.reduce((s, sem) => s + sem.treinos.reduce((t, tr) => t + tr.dist, 0), 0);
+                                      onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas, volume: newVolume } : c) });
+                                    }} style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--success)' }} title="Marcar como executado" />
+                                    <div style={{ fontSize: '10px', fontWeight: 'var(--weight-bold)', textTransform: 'uppercase', color: t.executado ? 'var(--success)' : 'var(--text-secondary)', background: t.executado ? 'rgba(16,185,129,0.2)' : 'var(--primary-light)', padding: '2px 6px', borderRadius: 'var(--radius-xs)' }}>{t.dia}</div>
+                                    <TrainingTypeBadge type={t.tipo}>{t.tipo}</TrainingTypeBadge>
+                                    {t.executado && <span style={{ fontSize: '12px', fontWeight: 'var(--weight-bold)', color: 'var(--success)' }}>✓</span>}
+                                  </div>
+                                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 'var(--weight-semibold)', textDecoration: t.executado ? 'line-through' : 'none', color: t.executado ? 'var(--success)' : 'inherit' }}>{t.resumo}</p>
+                                  <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: 'var(--text-secondary)' }}>{t.dist} km</p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  <IconButton icon="pencil" tone="neutral" size={24} onClick={() => handleEditTreino(i, t)} />
+                                  <IconButton icon="trash-2" tone="danger" size={24} onClick={() => handleRemoveWorkout(i, t.id)} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {editingTreino && (
+          <>
+            <div onClick={() => setEditingTreino(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999 }} />
+            <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-lg)', zIndex: 1000, padding: '24px', maxWidth: '500px', width: '90%' }}>
+              <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'var(--weight-bold)' }}>Editar Treino</h2>
+              <Input label="Resumo" value={editForm.resumo} onChange={(e) => setEditForm({ ...editForm, resumo: e.target.value })} placeholder="Ex: 8km Z2" style={{ marginBottom: '12px' }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', fontWeight: 'var(--weight-semibold)' }}>Dia</label>
+                  <select value={editForm.dia} onChange={(e) => setEditForm({ ...editForm, dia: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px' }}>
+                    {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'].map(d => <option key={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', fontWeight: 'var(--weight-semibold)' }}>Tipo</label>
+                  <select value={editForm.tipo} onChange={(e) => setEditForm({ ...editForm, tipo: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px' }}>
+                    <option>leve</option>
+                    <option>progressivo</option>
+                    <option>intervalado</option>
+                    <option>fartlek</option>
+                    <option>longao</option>
+                  </select>
+                </div>
+              </div>
+              <Input label="Distância (km)" type="number" value={editForm.dist} onChange={(e) => setEditForm({ ...editForm, dist: parseFloat(e.target.value) })} style={{ marginBottom: '12px' }} />
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <Button variant="ghost" onClick={() => setEditingTreino(null)}>Cancelar</Button>
+                <Button variant="success" onClick={handleSaveEdit}>Salvar</Button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {provaOpen && (
+          <>
+            <div onClick={() => setProvaOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999 }} />
+            <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-lg)', zIndex: 1000, padding: '24px', maxWidth: '500px', width: '90%' }}>
+              <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'var(--weight-bold)' }}>Prova Alvo</h2>
+              <Input label="Nome da prova" value={provaName} onChange={(e) => setProvaName(e.target.value)} placeholder="Ex: Meia Maratona da PF" style={{ marginBottom: '12px' }} />
+              <Input label="Data" type="date" value={provaDate} onChange={(e) => setProvaDate(e.target.value)} style={{ marginBottom: '20px' }} />
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <Button variant="ghost" onClick={() => setProvaOpen(false)}>Cancelar</Button>
+                <Button variant="success" onClick={handleSaveProva}>Salvar prova</Button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {drawerOpen && (
+          <>
+            <div onClick={() => setDrawerOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999, animation: 'fadeIn 0.2s' }} />
+            <div style={{ position: 'fixed', top: 0, right: 0, width: '520px', maxWidth: '100vw', minWidth: '280px', height: '100vh', background: 'var(--card-bg)', boxShadow: 'var(--shadow-drawer)', zIndex: 1000, overflow: 'auto', animation: 'slideInRight 0.25s', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ background: 'var(--primary)', color: 'white', padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <h2 style={{ fontSize: '15px', fontWeight: 'var(--weight-bold)', margin: '0 0 4px 0' }}>Adicionar treino</h2>
+                    <p style={{ fontSize: '12px', opacity: 0.85, margin: 0 }}>
+                      {semanas[selectedWeekIdx]?.nome} · {dayLabels[daysOfWeek.indexOf(selectedDay)]?.toUpperCase() || 'SEG'}
+                    </p>
+                  </div>
+                  <IconButton icon="x" tone="onDark" size={32} onClick={() => setDrawerOpen(false)} />
+                </div>
+              </div>
+
+              <div style={{ flex: 1, padding: '24px', overflow: 'auto' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                  {['quickadd', 'completo', 'biblioteca'].map((tab, i) => (
+                    <button key={tab} onClick={() => setDrawerTab(tab)} style={{ padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: drawerTab === tab ? '2px solid var(--primary)' : '1px solid var(--border)', background: drawerTab === tab ? 'var(--primary-light)' : 'transparent', cursor: 'pointer', fontSize: '12px', fontWeight: 'var(--weight-semibold)', color: drawerTab === tab ? 'var(--primary)' : 'var(--text-primary)' }}>
+                      {tab === 'quickadd' ? '⚡ Rápido' : tab === 'completo' ? '📋 Completo' : '📚 Biblioteca'}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ marginBottom: '16px', padding: '12px', background: 'var(--bg-muted)', borderRadius: 'var(--radius-sm)' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '11px', fontWeight: 'var(--weight-semibold)', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Dia da semana</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+                    {daysOfWeek.map((day, i) => (
+                      <button key={day} onClick={() => setSelectedDay(day)} style={{ padding: '8px 4px', borderRadius: 'var(--radius-sm)', border: selectedDay === day ? '2px solid var(--primary)' : '1px solid var(--border)', background: selectedDay === day ? 'var(--primary)' : 'transparent', color: selectedDay === day ? 'white' : 'var(--text-primary)', cursor: 'pointer', fontSize: '11px', fontWeight: 'var(--weight-semibold)', textAlign: 'center' }}>
+                        {dayLabels[i]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {drawerTab === 'quickadd' && (
+                  <>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', fontWeight: 'var(--weight-semibold)' }}>Adição rápida</label>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                      <input type="text" value={quickAdd} onChange={(e) => handleQuickAddChange(e.target.value)} placeholder="Ex: 8k z2, 6x800 z4" style={{ flex: 1, padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px' }} />
+                      <Button onClick={handleAddWorkout} disabled={!preview || preview.error}>✓</Button>
+                    </div>
+                    {preview && <div style={{ padding: '12px', background: preview.error ? 'rgba(239,68,68,0.1)' : 'var(--primary-light)', borderRadius: 'var(--radius-sm)', fontSize: '12px', color: preview.error ? 'var(--error)' : 'var(--primary-on-tint)', borderLeft: `3px solid ${preview.error ? 'var(--error)' : preview.warning ? 'var(--warning)' : 'var(--success)'}` }}>
+                      {preview.error ? preview.warning : preview.multi ? `✓ ${preview.workouts.map(w => w.resumo).join(' + ')}${preview.warning ? ` — ${preview.warning}` : ''}` : `✓ ${preview.resumo}${preview.minTxt ? ` · ${preview.minTxt} a ${preview.maxTxt}` : ''}${preview.warning ? ` — ${preview.warning}` : ''}`}
+                    </div>}
+                  </>
+                )}
+
+                {drawerTab === 'completo' && (() => {
+                  const [completeForm, setCompleteForm] = React.useState({ nome: '', tipo: 'progressivo', dist: '', zona: 'Z2' });
+                  const handleAddComplete = () => {
+                    if (completeForm.nome && completeForm.dist) {
+                      const newTreino = { id: Date.now().toString(), dia: selectedDay.toUpperCase().slice(0, 3), tipo: completeForm.tipo, dist: parseFloat(completeForm.dist), zona: completeForm.zona, resumo: completeForm.nome, executado: false };
+                      const newSemanas = semanas.map((s, i) => i === selectedWeekIdx ? { ...s, treinos: [...s.treinos, newTreino] } : s);
+                      setSemanas(newSemanas);
+                      onUpdateAtleta(atletaId, { ciclosList: ciclosList.map(c => c.id === cicloId ? { ...c, semanas: newSemanas } : c) });
+                      onAddToast('sucesso', `"${completeForm.nome}" adicionado!`);
+                      setCompleteForm({ nome: '', tipo: 'progressivo', dist: '', zona: 'Z2' });
+                      setDrawerOpen(false);
+                    } else {
+                      onAddToast('erro', 'Preencha nome e distância');
+                    }
+                  };
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <Input label="Nome do treino" value={completeForm.nome} onChange={(e) => setCompleteForm({ ...completeForm, nome: e.target.value })} placeholder="Ex: Progressivo 8km" style={{ marginBottom: '8px' }} />
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', fontWeight: 'var(--weight-semibold)' }}>Tipo</label>
+                        <select value={completeForm.tipo} onChange={(e) => setCompleteForm({ ...completeForm, tipo: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px', marginBottom: '12px' }}>
+                          <option>leve</option>
+                          <option>progressivo</option>
+                          <option>intervalado</option>
+                          <option>fartlek</option>
+                          <option>longao</option>
+                        </select>
+                      </div>
+                      <Input label="Distância (km)" value={completeForm.dist} onChange={(e) => setCompleteForm({ ...completeForm, dist: e.target.value })} placeholder="8" type="number" style={{ marginBottom: '8px' }} />
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', fontWeight: 'var(--weight-semibold)' }}>Zona</label>
+                        <select value={completeForm.zona} onChange={(e) => setCompleteForm({ ...completeForm, zona: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontSize: '13px' }}>
+                          <option>Z1</option>
+                          <option>Z2</option>
+                          <option>Z3</option>
+                          <option>Z4</option>
+                          <option>Z5</option>
+                        </select>
+                      </div>
+                      <Button variant="success" fullWidth style={{ marginTop: '12px' }} onClick={handleAddComplete}>Adicionar treino</Button>
+                    </div>
+                  );
+                })()}
+
+                {drawerTab === 'biblioteca' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {[
+                      { nome: '6x800m no limiar', tipo: 'intervalado', dist: 9.8 },
+                      { nome: 'Progressivo 8km', tipo: 'progressivo', dist: 8 },
+                      { nome: 'Fartlek 6km', tipo: 'fartlek', dist: 6 },
+                      { nome: 'Leve 5km', tipo: 'leve', dist: 5 },
+                      { nome: 'Longão 14km', tipo: 'longao', dist: 14 }
+                    ].map((t, i) => (
+                      <div key={i} style={{ padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                        <div style={{ fontWeight: 'var(--weight-semibold)', marginBottom: '4px', fontSize: '13px' }}>{t.nome}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                          <TrainingTypeBadge type={t.tipo}>{t.tipo}</TrainingTypeBadge>
+                          <span style={{ marginLeft: '8px' }}>📏 {t.dist} km</span>
+                        </div>
+                        <Button variant="success" size="sm" fullWidth onClick={() => handleAddFromLibrary(t.nome, t.tipo, t.dist)}>+ Inserir</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ padding: '20px 24px', borderTop: '1px solid var(--border)', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <Button variant="ghost" onClick={() => setDrawerOpen(false)}>Fechar</Button>
+              </div>
+            </div>
+          </>
+        )}
+
+        <Card style={{ padding: '40px', marginTop: '48px', background: 'white', pageBreakBefore: 'always', boxShadow: 'none', border: 'none' }}>
+          <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <h1 style={{ margin: '0 0 4px 0', fontSize: '28px', fontWeight: 'var(--weight-black)', color: 'var(--header-gradient-from)' }}>RELATÓRIO DE CICLO</h1>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+
+          <div style={{ background: 'linear-gradient(135deg, var(--header-gradient-from) 0%, var(--header-gradient-to) 100%)', color: 'white', padding: '24px', borderRadius: '8px', marginBottom: '32px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+              <div>
+                <p style={{ margin: '0 0 4px 0', fontSize: '11px', opacity: 0.8 }}>ATLETA</p>
+                <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 'var(--weight-bold)' }}>{atleta.nome}</h3>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 4px 0', fontSize: '11px', opacity: 0.8 }}>TESTE 3KM</p>
+                <h3 style={{ margin: 0, fontSize: '20px', fontFamily: 'var(--font-mono)' }}>{atleta.teste}</h3>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 4px 0', fontSize: '11px', opacity: 0.8 }}>CICLO</p>
+                <p style={{ margin: 0, fontSize: '14px' }}>{ciclo.nome} · {semanas.length} semanas</p>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 4px 0', fontSize: '11px', opacity: 0.8 }}>VOLUME TOTAL</p>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: 'var(--weight-bold)' }}>{totalVolume.toFixed(1)} km</p>
+              </div>
+              {ciclo.prova && (
+                <>
+                  <div>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', opacity: 0.8 }}>PROVA ALVO</p>
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 'var(--weight-bold)' }}>{ciclo.prova.nome}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', opacity: 0.8 }}>DATA DA PROVA</p>
+                    <p style={{ margin: 0, fontSize: '14px' }}>{new Date(ciclo.prova.data).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {zones && <div style={{ marginBottom: '32px', pageBreakInside: 'avoid' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>Zonas de Treino</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px' }}>
+              {['Z5', 'Z4', 'Z3', 'Z2', 'Z1'].map(zone => {
+                const z = zones[zone];
+                const zoneEmoji = { Z1: '🟢', Z2: '🔵', Z3: '🟡', Z4: '🟠', Z5: '🔴' };
+                return (
+                  <div key={zone} style={{ padding: '12px', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center', pageBreakInside: 'avoid' }}>
+                    <div style={{ fontSize: '18px', marginBottom: '6px' }}>{zoneEmoji[zone]}</div>
+                    <div style={{ fontWeight: 'var(--weight-bold)', marginBottom: '8px', fontSize: '13px' }}>{zone}</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                      <div>{fmtPace(z.min)}–{fmtPace(z.max)}</div>
+                      <div style={{ marginTop: '4px' }}>{fmtSpeed(z.max)}-{fmtSpeed(z.min)} km/h</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>}
+
+          {(() => {
+            const volumeExecutado = semanas.reduce((s, sem) => s + sem.treinos.filter(t => t.executado).reduce((t, tr) => t + tr.dist, 0), 0);
+            const semanasComTreino = semanas.filter(s => s.treinos.length > 0).length;
+            const semanasComTreinoExecutado = semanas.filter(s => s.treinos.some(t => t.executado)).length;
+            return (
+              <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{ padding: '12px', background: 'var(--bg-muted)', borderRadius: '6px', pageBreakInside: 'avoid' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'var(--weight-bold)', color: 'var(--text-muted)', marginBottom: '4px' }}>VOLUME EXECUTADO</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'var(--weight-black)', color: 'var(--success)' }}>{volumeExecutado.toFixed(1)} km</div>
+                </div>
+                <div style={{ padding: '12px', background: 'var(--bg-muted)', borderRadius: '6px', pageBreakInside: 'avoid' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'var(--weight-bold)', color: 'var(--text-muted)', marginBottom: '4px' }}>PERCENTUAL</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'var(--weight-black)', color: 'var(--primary)' }}>{totalVolume > 0 ? Math.round((volumeExecutado / totalVolume) * 100) : 0}%</div>
+                </div>
+                <div style={{ padding: '12px', background: 'var(--bg-muted)', borderRadius: '6px', pageBreakInside: 'avoid' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'var(--weight-bold)', color: 'var(--text-muted)', marginBottom: '4px' }}>SEMANAS</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'var(--weight-black)', color: 'var(--accent)' }}>{semanasComTreinoExecutado}/{semanasComTreino}</div>
+                </div>
+                <div style={{ padding: '12px', background: 'var(--bg-muted)', borderRadius: '6px', pageBreakInside: 'avoid' }}>
+                  <div style={{ fontSize: '10px', fontWeight: 'var(--weight-bold)', color: 'var(--text-muted)', marginBottom: '4px' }}>STATUS</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'var(--weight-black)', color: volumeExecutado === totalVolume ? 'var(--success)' : 'var(--warning)' }}>{volumeExecutado === totalVolume ? '✓ Completo' : '⏳ Em andamento'}</div>
+                </div>
+              </div>
+            );
+          })()}
+
+          <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>Programação Semanal</h3>
+          {semanas.map((sem) => {
+            const vol = sem.treinos.reduce((s, t) => s + t.dist, 0);
+            return (
+              <div key={sem.id} style={{ marginBottom: '20px', pageBreakInside: 'avoid' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '12px', paddingBottom: '8px', borderBottom: '2px solid var(--border)' }}>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'var(--weight-bold)' }}>{sem.nome}</h4>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{sem.treinos.length} treino{sem.treinos.length !== 1 ? 's' : ''} · {vol.toFixed(1)} km</span>
+                </div>
+
+                {sem.treinos.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Sem treinos agendados</p>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px' }}>
+                    <tbody>
+                      {sem.treinos.map((t) => (
+                        <tr key={t.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '8px 0', width: '12%', fontWeight: 'var(--weight-bold)' }}>{t.dia}</td>
+                          <td style={{ padding: '8px 8px', width: '50%' }}>{t.resumo}</td>
+                          <td style={{ padding: '8px 8px', width: '18%', textAlign: 'center', color: 'var(--text-secondary)' }}>{t.tipo}</td>
+                          <td style={{ padding: '8px 0', width: '20%', textAlign: 'right', fontFamily: 'var(--font-mono)', fontWeight: 'var(--weight-bold)' }}>{t.dist} km</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            );
+          })}
+
+          <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '2px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-secondary)' }}>
+            <span>Treinador Mateus Lucas</span>
+            <span style={{ textAlign: 'right' }}>
+              <div>Total: <strong>{totalVolume.toFixed(1)} km</strong></div>
+            </span>
+          </div>
+        </Card>
+      </>;
+    }
+
+    function LibraryScreen() {
+      const [search, setSearch] = React.useState('');
+      const [filterType, setFilterType] = React.useState('todos');
+
+      const biblioteca = [
+        { nome: '6x800m no limiar', tipo: 'intervalado', dist: 9.8, usos: 14 },
+        { nome: 'Progressivo 8km', tipo: 'progressivo', dist: 8, usos: 8 },
+        { nome: 'Fartlek 6km', tipo: 'fartlek', dist: 6, usos: 5 },
+        { nome: 'Leve 5km', tipo: 'leve', dist: 5, usos: 22 },
+        { nome: 'Longão 14km', tipo: 'longao', dist: 14, usos: 12 },
+      ];
+
+      const filtered = biblioteca.filter(t => {
+        const matchSearch = t.nome.toLowerCase().includes(search.toLowerCase());
+        const matchType = filterType === 'todos' || t.tipo === filterType;
+        return matchSearch && matchType;
+      });
+
+      return <>
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Reaproveitar</p>
+          <h1 style={{ margin: 0, fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>Biblioteca de treinos</h1>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Treinos salvos, prontos para inserir em qualquer semana</p>
+        </div>
+
+        <Card style={{ marginBottom: '20px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar na biblioteca..." label="Busca" style={{ flex: 1 }} />
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['todos', 'leve', 'progressivo', 'intervalado', 'fartlek', 'longao'].map(type => (
+              <button key={type} onClick={() => setFilterType(type)} style={{ padding: '8px 14px', borderRadius: 'var(--radius-pill)', border: filterType === type ? 'none' : '1px solid var(--border)', background: filterType === type ? 'var(--primary)' : 'transparent', color: filterType === type ? 'white' : 'var(--text-primary)', cursor: 'pointer', fontSize: '12px', fontWeight: 'var(--weight-semibold)', textTransform: 'capitalize', transition: 'all var(--duration-base)' }}>
+                {type === 'todos' ? '📋 Todos' : type === 'leve' ? '🟢 Leve' : type === 'progressivo' ? '📈 Progressivo' : type === 'intervalado' ? '⚡ Intervalado' : type === 'fartlek' ? '🌊 Fartlek' : '🏃 Longão'}
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        {filtered.length === 0 ? (
+          <Card>
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
+              <p style={{ margin: 0, fontWeight: 'var(--weight-semibold)' }}>Nenhum treino encontrado</p>
+            </div>
+          </Card>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            {filtered.map((t, i) => (
+              <Card key={i}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 'var(--weight-semibold)' }}>{t.nome}</h4>
+                  <IconButton icon="trash-2" tone="danger" size={24} style={{ opacity: 0.5 }} />
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+                  <TrainingTypeBadge type={t.tipo}>{t.tipo}</TrainingTypeBadge>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                  <span>📏 <strong>{t.dist} km</strong></span>
+                  <span>📊 <strong>{t.usos}</strong> usos</span>
+                </div>
+                <Button variant="success" fullWidth size="sm">+ Inserir em ciclo</Button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </>;
+    }
+
+    function NewAthleteModal({ open, onClose, onAddToast, onAddAthleta }) {
+      const [nome, setNome] = useState('');
+      const [teste, setTeste] = useState('');
+      const handleSubmit = () => {
+        const trimmedNome = nome.trim();
+        const trimmedTeste = teste.trim();
+        if (!trimmedNome) {
+          onAddToast('erro', 'Nome do atleta é obrigatório');
+          return;
+        }
+        if (trimmedNome.length < 3) {
+          onAddToast('erro', 'Nome deve ter pelo menos 3 caracteres');
+          return;
+        }
+        if (!trimmedTeste) {
+          onAddToast('erro', 'Teste 3km é obrigatório');
+          return;
+        }
+        const testePattern = /^\d{2}:\d{2}$/;
+        if (!testePattern.test(trimmedTeste)) {
+          onAddToast('erro', 'Formato de teste inválido. Use MM:SS (ex: 05:00)');
+          return;
+        }
+        onAddAthleta({ id: Date.now().toString(), nome: trimmedNome, teste: trimmedTeste, aderencia: 50, ciclos: 0, proximo: 'A definir', notas: '', ciclosList: [], trend: [50] });
+        onAddToast('sucesso', `Atleta ${trimmedNome} criado! 🎉`);
+        setNome('');
+        setTeste('');
+        onClose();
+      };
+      if (!open) return null;
+      return <>
+        <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999 }} />
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-lg)', zIndex: 1000, padding: '24px', maxWidth: '500px', width: '90%' }}>
+          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'var(--weight-bold)' }}>Novo Atleta</h2>
+          <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome completo" style={{ marginBottom: '12px' }} />
+          <Input label="Teste 3km (MM:SS)" value={teste} onChange={(e) => setTeste(e.target.value)} placeholder="05:00" mono style={{ marginBottom: '20px' }} />
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button variant="success" onClick={handleSubmit}>Criar atleta</Button>
+          </div>
+        </div>
+      </>;
+    }
+
+    function NewCycleModal({ open, onClose, onAddToast, atletaId, atletas, onUpdateAtleta }) {
+      const [nome, setNome] = useState('Ciclo ');
+      const [semanas, setSemanas] = useState('4');
+      const handleSubmit = () => {
+        const trimmedNome = nome.trim();
+        if (!trimmedNome) {
+          onAddToast('erro', 'Nome do ciclo é obrigatório');
+          return;
+        }
+        if (trimmedNome.length < 3) {
+          onAddToast('erro', 'Nome deve ter pelo menos 3 caracteres');
+          return;
+        }
+        if (!semanas) {
+          onAddToast('erro', 'Número de semanas é obrigatório');
+          return;
+        }
+        const semanasNum = parseInt(semanas);
+        if (isNaN(semanasNum) || semanasNum < 1 || semanasNum > 52) {
+          onAddToast('erro', 'Número de semanas deve estar entre 1 e 52');
+          return;
+        }
+        const novasSemanas = Array.from({ length: semanasNum }, (_, i) => ({
+          id: `s${Date.now()}_${i}`,
+          nome: `Semana ${i + 1}`,
+          sub: 'Ordinária · Base',
+          treinos: []
+        }));
+        const dataInicio = new Date().toISOString().split('T')[0];
+        const novoCiclo = {
+          id: Date.now().toString(),
+          nome: trimmedNome,
+          semanas: novasSemanas,
+          dataInicio,
+          volume: 0
+        };
+        const atleta = atletas.find(a => a.id === atletaId);
+        onUpdateAtleta(atletaId, { ciclosList: [...(atleta?.ciclosList || []), novoCiclo] });
+        onAddToast('sucesso', `Ciclo "${trimmedNome}" criado com ${semanasNum} semanas! 📅`);
+        setNome('Ciclo ');
+        setSemanas('4');
+        onClose();
+      };
+      if (!open) return null;
+      return <>
+        <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999 }} />
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-lg)', zIndex: 1000, padding: '24px', maxWidth: '500px', width: '90%' }}>
+          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'var(--weight-bold)' }}>Novo Ciclo</h2>
+          <Input label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ciclo Base" style={{ marginBottom: '12px' }} />
+          <Input label="Semanas" value={semanas} onChange={(e) => setSemanas(e.target.value)} placeholder="4" type="number" style={{ marginBottom: '20px' }} />
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button variant="success" onClick={handleSubmit}>Criar ciclo</Button>
+          </div>
+        </div>
+      </>;
+    }
+
+    function NotesDrawer({ open, onClose, atletaId, atletas, onUpdateAtleta, onAddToast }) {
+      const atleta = atletas.find(a => a.id === atletaId);
+      const [notes, setNotes] = useState(atleta?.notas || '');
+      return <>
+        {open && <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999, animation: 'fadeIn 0.2s' }} />}
+        <div style={{ position: 'fixed', top: 0, right: 0, width: '520px', maxWidth: '100vw', minWidth: '280px', height: '100vh', background: 'var(--card-bg)', boxShadow: 'var(--shadow-drawer)', zIndex: 1000, overflow: 'auto', animation: 'slideInRight 0.25s', transform: open ? 'translateX(0)' : 'translateX(100%)', transition: 'transform var(--duration-drawer)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: 'var(--success)', color: 'white', padding: '20px 24px', borderBottom: '1px solid rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{ fontSize: '15px', fontWeight: 'var(--weight-bold)', margin: '0 0 4px 0' }}>Notas — {atleta?.nome}</h2>
+                <p style={{ fontSize: '12px', opacity: 0.85, margin: 0 }}>Histórico, lesões, objetivos, características</p>
+              </div>
+              <IconButton icon="x" tone="onDark" size={32} onClick={onClose} />
+            </div>
+          </div>
+          <div style={{ flex: 1, padding: '24px', overflow: 'auto' }}>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Digite suas notas aqui..." style={{ width: '100%', minHeight: '300px', padding: '12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', fontFamily: 'var(--font-sans)', fontSize: '13px', resize: 'vertical', boxSizing: 'border-box' }} />
+          </div>
+          <div style={{ padding: '20px 24px', borderTop: '1px solid var(--border)', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+            <Button variant="success" onClick={() => { onUpdateAtleta(atletaId, { notas }); onAddToast('sucesso', 'Notas salvas! 📝'); onClose(); }}>Salvar notas</Button>
+          </div>
+        </div>
+      </>;
+    }
+
+    function BackupModal({ open, onClose, onAddToast, atletas }) {
+      const fileInputRef = React.useRef(null);
+
+      const handleExport = () => {
+        if (!atletas || atletas.length === 0) {
+          onAddToast('erro', 'Nenhum atleta para fazer backup');
+          return;
+        }
+        const backup = { atletas, exportedAt: new Date().toISOString() };
+        downloadJSON(backup, `treinador-backup-${new Date().toISOString().split('T')[0]}.json`);
+        onAddToast('sucesso', 'Backup exportado! 📥');
+        onClose();
+      };
+
+      const handleImport = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          uploadJSON(file, (data) => {
+            if (data && data.atletas) {
+              storage.save('treinador-data', data);
+              onAddToast('sucesso', 'Backup importado! ✅');
+              window.location.reload();
+            } else {
+              onAddToast('erro', 'Arquivo inválido!');
+            }
+          });
+        }
+      };
+
+      if (!open) return null;
+      return <>
+        <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999 }} />
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: 'var(--radius-card)', boxShadow: 'var(--shadow-lg)', zIndex: 1000, padding: '24px', maxWidth: '500px', width: '90%' }}>
+          <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'var(--weight-bold)' }}>Backup & Restore</h2>
+          <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Exporte seus dados para arquivo JSON ou importe um backup anteriormente exportado.</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+            <Button variant="primary" fullWidth onClick={handleExport} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <Icon name="download" size={16} /> Exportar Backup
+            </Button>
+            <Button variant="ghost" fullWidth onClick={() => fileInputRef.current?.click()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <Icon name="upload" size={16} /> Importar Backup
+            </Button>
+            <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
+          </div>
+
+          <div style={{ background: 'var(--bg-muted)', padding: '12px', borderRadius: 'var(--radius-sm)', marginBottom: '20px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <p style={{ margin: 0 }}>💾 Último backup: {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={onClose}>Fechar</Button>
+          </div>
+        </div>
+      </>;
+    }
+
+    // ============ MAIN APP ============
+    function App() {
+      const [view, setView] = useState('dashboard');
+      const [atletaId, setAtletaId] = useState(null);
+      const [cicloId, setCicloId] = useState(null);
+      const [dark, setDark] = useState(false);
+      const [sidebarOpen, setSidebarOpen] = useState(false);
+      const [notesOpen, setNotesOpen] = useState(false);
+      const [newAthleteModalOpen, setNewAthleteModalOpen] = useState(false);
+      const [newCycleModalOpen, setNewCycleModalOpen] = useState(false);
+      const [backupModalOpen, setBackupModalOpen] = useState(false);
+      const [toasts, setToasts] = useState([]);
+      const [atletas, setAtletas] = useState(() => storage.load('treinador-data', { atletas: [
+        { id: '1', nome: 'Allan', aderencia: 78, teste: '05:00', trend: [22, 28, 31, 18, 0, 26, 34, 24], proximo: 'Ter 04/08 · Progressivo 8 km', ciclos: 2, notas: '', ciclosList: [{ id: 'c1', nome: 'Ciclo Base 1', semanas: [{ id: 's1', nome: 'Semana 1', sub: 'Ordinária · Base', treinos: [{ id: 't1', dia: 'TER', tipo: 'progressivo', dist: 8, zona: 'Z2', resumo: '8km Z2' }] }, { id: 's2', nome: 'Semana 2', sub: 'Ordinária · Base', treinos: [] }, { id: 's3', nome: 'Semana 3', sub: 'Ordinária · Base', treinos: [] }, { id: 's4', nome: 'Semana 4', sub: 'Ordinária · Base', treinos: [] }] }] },
+        { id: '2', nome: 'Pedro Henrique', aderencia: 78, teste: '05:00', trend: [20, 25, 28, 22, 0, 24, 30, 26], proximo: 'Qua 05/08 · Fartlek 6 km', ciclos: 2, notas: '', ciclosList: [] },
+        { id: '3', nome: 'Jessyka Carvalho', aderencia: 92, teste: '05:40', trend: [28, 32, 35, 30, 0, 31, 36, 33], proximo: 'Qui 06/08 · Longão 14 km', ciclos: 2, notas: '', ciclosList: [] },
+        { id: '4', nome: 'Suzy', aderencia: 45, teste: '06:10', trend: [12, 14, 15, 10, 0, 12, 16, 13], proximo: 'Ter 04/08 · Leve 5 km', ciclos: 1, notas: '', ciclosList: [] },
+        { id: '5', nome: 'Amanda Sousa', aderencia: 86, teste: '04:50', trend: [25, 28, 31, 26, 0, 29, 33, 28], proximo: 'Sex 08/08 · Ritmado 10 km', ciclos: 1, notas: '', ciclosList: [] },
+        { id: '6', nome: 'Eugênio Gabriel', aderencia: 61, teste: '05:25', trend: [18, 21, 24, 19, 0, 22, 26, 21], proximo: 'Seg 03/08 · Intervalado 8 km', ciclos: 2, notas: '', ciclosList: [] },
+      ] }).atletas);
+
+      useEffect(() => {
+        document.body.classList.toggle('dark', dark);
+      }, [dark]);
+
+      useEffect(() => {
+        storage.save('treinador-data', { atletas });
+      }, [atletas]);
+
+      const addToast = (kind, msg) => {
+        const id = Date.now();
+        setToasts(t => [...t, { id, kind, msg }]);
+        setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 3200);
+      };
+
+      const updateAtleta = (id, updates) => {
+        setAtletas(atletas.map(a => a.id === id ? { ...a, ...updates } : a));
+      };
+
+      const addAtleta = (newAtleta) => {
+        setAtletas([...atletas, newAtleta]);
+      };
+
+      return <>
+        <style>{`
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+          @keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+          @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+          @media print {
+            body { background: white; }
+            header, nav, [style*="pageBreakBefore"] { display: none !important; }
+            .no-print { display: none !important; }
+            .week-empty { background: #fef3c7; }
+            .week-empty::after { content: ' ⚠ SEMANA VAZIA'; font-weight: bold; color: #d97706; }
+          }
+        `}</style>
+
+        <header style={{ background: 'linear-gradient(135deg, var(--header-gradient-from) 0%, var(--header-gradient-to) 100%)', color: 'white', padding: '16px 3rem', boxShadow: 'var(--shadow-header)', position: 'sticky', top: 0, zIndex: 1000, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <IconButton icon="menu" tone="onDark" onClick={() => setSidebarOpen(!sidebarOpen)} title="Menu" />
+            <Icon name="footprints" size={20} />
+            <h1 style={{ fontSize: 'var(--text-20)', fontWeight: 'var(--weight-bold)', margin: 0 }}>Treinador Mateus Lucas</h1>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.9)', padding: '6px 12px', borderRadius: 'var(--radius-pill)', fontSize: '12px', fontWeight: 'var(--weight-semibold)', display: 'flex', alignItems: 'center', gap: '6px' }}><Icon name="circle-check" size={14} /> Salvo agora</span>
+            <IconButton icon={dark ? 'sun' : 'moon'} tone="onDark" onClick={() => setDark(!dark)} title="Tema" />
+            <Button variant="header" onClick={() => setBackupModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Icon name="save" size={14} /> Backup</Button>
+          </div>
+        </header>
+
+        {view !== 'dashboard' && view !== 'roster' && <Breadcrumb items={view === 'athlete' ? ['Atletas', atletas.find(a => a.id === atletaId)?.nome] : view === 'cycle' ? ['Atletas', atletas.find(a => a.id === atletaId)?.nome, 'Ciclos'] : ['Biblioteca']} onNavigate={(idx) => { if (idx === 0) setView('roster'); else if (idx === 1) setView('athlete'); }} />}
+
+        {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15,23,42,0.55)', zIndex: 999, animation: 'fadeIn 0.2s' }} />}
+
+        <nav style={{ position: 'fixed', top: 0, left: 0, width: 'var(--sidebar-width)', height: '100vh', background: 'linear-gradient(135deg, var(--header-gradient-from) 0%, var(--header-gradient-to) 100%)', color: 'white', zIndex: 1000, overflow: 'auto', animation: 'slideInLeft 0.25s', transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform var(--duration-drawer)' }}>
+          <div style={{ padding: '16px' }}>
+            {[
+              { title: 'Navegação', items: [{ id: 'dashboard', icon: 'bar-chart-3', label: 'Visão geral' }, { id: 'roster', icon: 'users', label: 'Atletas' }, { id: 'library', icon: 'library', label: 'Biblioteca' }] },
+              { title: 'Ajuda', items: [{ id: 'guide', icon: 'circle-help', label: 'Guia rápido' }, { id: 'about', icon: 'info', label: 'Sobre' }] }
+            ].map((sec, i) => (
+              <div key={i} style={{ marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '11px', fontWeight: 'var(--weight-bold)', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', margin: '0 0 12px 0' }}>{sec.title}</h3>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {sec.items.map(item => (
+                    <li key={item.id}>
+                      <button onClick={() => { setView(item.id); setSidebarOpen(false); }} style={{ background: view === item.id ? 'rgba(255,255,255,0.15)' : 'transparent', color: 'rgba(255,255,255,0.9)', border: 'none', borderLeft: view === item.id ? '4px solid #1873d4' : '4px solid transparent', padding: '10px 12px', width: '100%', textAlign: 'left', cursor: 'pointer', fontSize: '13px', fontWeight: view === item.id ? 'var(--weight-semibold)' : 'var(--weight-regular)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <Icon name={item.icon} size={18} />
+                        {item.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </nav>
+
+        <div style={{ maxWidth: 'var(--max-width-desktop)', margin: '0 auto', padding: '2rem 3rem 4rem', minHeight: 'calc(100vh - 78px)' }}>
+          {view === 'dashboard' && <DashboardScreen onSelectAtleta={(id) => { setAtletaId(id); setView('athlete'); }} onAddToast={addToast} onNewAthleta={() => setNewAthleteModalOpen(true)} />}
+          {view === 'roster' && <RosterScreen atletas={atletas} onSelectAtleta={(id) => { setAtletaId(id); setView('athlete'); }} onAddToast={addToast} onNewAthleta={() => setNewAthleteModalOpen(true)} />}
+          {view === 'athlete' && <AthleteScreen atletaId={atletaId} atletas={atletas} onBack={() => setView('roster')} onSelectCiclo={(id) => { setCicloId(id); setView('cycle'); }} onOpenNotes={() => setNotesOpen(true)} onNewCiclo={() => setNewCycleModalOpen(true)} onUpdateAtleta={updateAtleta} onAddToast={addToast} />}
+          {view === 'cycle' && <CycleScreen atletaId={atletaId} cicloId={cicloId} atletas={atletas} onBack={() => setView('athlete')} onAddToast={addToast} onUpdateAtleta={updateAtleta} />}
+          {view === 'library' && <LibraryScreen />}
+          {view === 'guide' && (
+            <Card>
+              <h1 style={{ margin: '0 0 20px 0', fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>📖 Guia Rápido</h1>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>🏃 Criar Atleta</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Clique em "Novo atleta" no Dashboard para adicionar um novo atleta com nome e teste 3km.</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>📅 Criar Ciclo</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Na tela do atleta, clique "Novo ciclo" para criar um novo ciclo com número de semanas desejado.</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>⚡ Adicionar Treinos</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Use "Adição rápida" (ex: 8k z2), "Treino completo" ou "Biblioteca" para adicionar treinos ao ciclo.</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>🎯 Drag-and-Drop</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Na aba Planilha, arraste treinos entre semanas para reorganizar a programação.</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>💾 Backup</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Clique "Backup" no header para exportar/importar seus dados em JSON.</p>
+                </div>
+              </div>
+            </Card>
+          )}
+          {view === 'about' && (
+            <Card>
+              <h1 style={{ margin: '0 0 20px 0', fontSize: 'var(--text-27)', fontWeight: 'var(--weight-black)' }}>ℹ️ Sobre</h1>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>Treinador Mateus Lucas</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>Aplicação web para gerenciamento de treinos de corrida. Organize atletas, ciclos, semanas e treinos com facilidade. Suporte a backup e relatórios em PDF.</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>Versão</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>v1.0.0</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>Tecnologias</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>React 18, Lucide Icons, localStorage para persistência de dados.</p>
+                </div>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'var(--weight-bold)' }}>Desenvolvido por</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>Claude AI × Mateus Lucas</p>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+
+        <NotesDrawer open={notesOpen} onClose={() => setNotesOpen(false)} atletaId={atletaId} atletas={atletas} onUpdateAtleta={updateAtleta} onAddToast={addToast} />
+        <NewAthleteModal open={newAthleteModalOpen} onClose={() => setNewAthleteModalOpen(false)} onAddToast={addToast} onAddAtleta={addAtleta} />
+        <NewCycleModal open={newCycleModalOpen} onClose={() => setNewCycleModalOpen(false)} onAddToast={addToast} atletaId={atletaId} atletas={atletas} onUpdateAtleta={updateAtleta} />
+        <BackupModal open={backupModalOpen} onClose={() => setBackupModalOpen(false)} onAddToast={addToast} atletas={atletas} />
+
+        <div style={{ position: 'fixed', top: '78px', right: '20px', zIndex: 99999, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {toasts.map(t => <Toast key={t.id} kind={t.kind}>{t.msg}</Toast>)}
+        </div>
+      </>;
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
 </body>
 </html>
