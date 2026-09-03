@@ -1,13 +1,64 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Treinador Mateus Lucas - Painel de Treinos</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Treinador Mateus Lucas</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="./src/styles/styles.css">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <script src="./src/app/data.js"></script>
+  <script src="./src/app/utils.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Core Components -->
+  <script type="text/babel" src="./src/components/core/Icon.jsx"></script>
+  <script type="text/babel" src="./src/components/core/Button.jsx"></script>
+  <script type="text/babel" src="./src/components/core/IconButton.jsx"></script>
+  <script type="text/babel" src="./src/components/core/Input.jsx"></script>
+  <script type="text/babel" src="./src/components/core/Select.jsx"></script>
+  <script type="text/babel" src="./src/components/core/Toggle.jsx"></script>
+  <script type="text/babel" src="./src/components/core/Card.jsx"></script>
+  <script type="text/babel" src="./src/components/core/SectionHeader.jsx"></script>
+  <script type="text/babel" src="./src/components/core/EmptyState.jsx"></script>
+
+  <!-- Feedback Components -->
+  <script type="text/babel" src="./src/components/feedback/TrainingTypeBadge.jsx"></script>
+  <script type="text/babel" src="./src/components/feedback/PhaseBadge.jsx"></script>
+  <script type="text/babel" src="./src/components/feedback/FeedbackChip.jsx"></script>
+  <script type="text/babel" src="./src/components/feedback/Toast.jsx"></script>
+  <script type="text/babel" src="./src/components/feedback/ConfirmModal.jsx"></script>
+
+  <!-- Data Components -->
+  <script type="text/babel" src="./src/components/data/ZoneCard.jsx"></script>
+  <script type="text/babel" src="./src/components/data/ProgressRing.jsx"></script>
+  <script type="text/babel" src="./src/components/data/Sparkline.jsx"></script>
+  <script type="text/babel" src="./src/components/data/VolumeChart.jsx"></script>
+  <script type="text/babel" src="./src/components/data/AthleteCard.jsx"></script>
+  <script type="text/babel" src="./src/components/data/CycleCard.jsx"></script>
+  <script type="text/babel" src="./src/components/data/WorkoutCard.jsx"></script>
+  <script type="text/babel" src="./src/components/data/DayCard.jsx"></script>
+  <script type="text/babel" src="./src/components/data/StatItem.jsx"></script>
+  <script type="text/babel" src="./src/components/data/DashboardStatCard.jsx"></script>
+  <script type="text/babel" src="./src/components/data/ExecutionStats.jsx"></script>
+  <script type="text/babel" src="./src/components/data/WorkoutsTable.jsx"></script>
+
+  <!-- Form Components -->
+  <script type="text/babel" src="./src/components/forms/QuickAdd.jsx"></script>
+
+  <!-- Navigation Components -->
+  <script type="text/babel" src="./src/components/navigation/AppHeader.jsx"></script>
+  <script type="text/babel" src="./src/components/navigation/Breadcrumb.jsx"></script>
+  <script type="text/babel" src="./src/components/navigation/WeekNav.jsx"></script>
+  <script type="text/babel" src="./src/components/navigation/Sidebar.jsx"></script>
+  <script type="text/babel" src="./src/components/navigation/Drawer.jsx"></script>
+
+  <!-- App -->
+  <script type="text/babel" src="./src/app/app.jsx"></script>
+</body>
 </html>

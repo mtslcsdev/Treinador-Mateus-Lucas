@@ -1,0 +1,15 @@
+:root{
+  /* Z1 mais lenta → Z5 mais rápida. Valores sólidos em superfície clara. */
+  --z1:#16a34a;
+  --z2:#0891b2;
+  --z3:#ca8a04;
+  --z4:#ea580c;
+  --z5:#dc2626;
+
+  /* Variantes claras, usadas sobre o painel navy */
+  --z1-on-dark:#4ade80;
+  --z2-on-dark:#38bdf8;
+  --z3-on-dark:#fbbf24;
+  --z4-on-dark:#fb923c;
+  --z5-on-dark:#f87171;
+}
