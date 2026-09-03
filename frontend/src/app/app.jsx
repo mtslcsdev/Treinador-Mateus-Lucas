@@ -136,6 +136,16 @@ function App() {
             biblioteca={KIT2.biblioteca}
           />
         )}
+
+        {view === 'cycle' && typeof CycleScreen !== 'undefined' && (
+          <CycleScreen
+            ciclo={KIT2.atletas.find(a => a.id === atletaId)?.ciclos.find(c => c.id === cicloId)}
+            atleta={KIT2.atletas.find(a => a.id === atletaId)}
+            onBackClick={() => handleNavigation('athlete', atletaId)}
+            onAddToast={addToast}
+            biblioteca={KIT2.biblioteca}
+          />
+        )}
       </div>
 
       <Sidebar
