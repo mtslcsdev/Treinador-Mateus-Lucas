@@ -1,21 +1,8 @@
 [build]
-command = "echo 'No build needed - static site'"
+command = "echo 'Static site - no build needed'"
 publish = "frontend"
-base = ""
 
 [[redirects]]
 from = "/*"
 to = "/index.html"
 status = 200
-
-[context.production]
-command = "echo 'Production build'"
-publish = "frontend"
-
-[context.deploy-preview]
-command = "echo 'Deploy preview build'"
-publish = "frontend"
-
-[context.branch-deploy]
-command = "echo 'Branch deploy build'"
-publish = "frontend"
