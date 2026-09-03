@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS public.atletas (
   historicoPaces JSONB DEFAULT '[]',
   aderencia INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
 -- Index para queries de user_id
