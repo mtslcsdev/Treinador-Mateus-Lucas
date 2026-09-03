@@ -15,3 +15,4 @@ Thumbs.db
 
 # Netlify
 .netlify
+frontend/.vite
