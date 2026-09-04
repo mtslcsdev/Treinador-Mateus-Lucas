@@ -1,0 +1,11 @@
+:root{
+  --radius-xs:4px;
+  --radius-sm:6px;
+  --radius-md:10px;
+  --radius-lg:14px;
+  --radius-xl:18px;
+  --radius-card:12px;         /* .card */
+  --radius-card-athlete:16px; /* .atleta-card */
+  --radius-pill:99px;
+  --radius-round:50%;
+}

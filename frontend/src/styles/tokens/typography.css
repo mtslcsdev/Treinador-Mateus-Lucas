@@ -1,0 +1,32 @@
+:root{
+  --font-sans:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  --font-mono:'Courier New',monospace; /* pace values only */
+
+  --text-base:14px;      /* body */
+  --text-9:9.5px;        /* chart labels */
+  --text-10:10px;        /* micro labels, badges */
+  --text-11:11px;        /* uppercase eyebrows */
+  --text-12:12px;        /* chips, meta */
+  --text-13:13px;        /* buttons, subtitles */
+  --text-13-5:13.5px;    /* inputs, toasts */
+  --text-15:15px;        /* drawer titles */
+  --text-16:1rem;        /* h2 / section title */
+  --text-17:17px;        /* modal title */
+  --text-20:1.25rem;     /* app header h1 */
+  --text-22:22px;        /* zone pace */
+  --text-27:1.7rem;      /* stat value */
+
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-semibold:600;
+  --weight-bold:700;
+  --weight-black:800;
+
+  --leading-tight:1.3;
+  --leading-body:1.5;
+  --leading-relaxed:1.6;
+
+  --tracking-eyebrow:0.5px;
+  --tracking-eyebrow-wide:0.7px;
+  --tracking-title:-0.5px;
+}

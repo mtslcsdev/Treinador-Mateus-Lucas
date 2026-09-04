@@ -1,0 +1,18 @@
+/* Treinador Mateus Lucas — global entry point. Imports only. */
+@import url("tokens/fonts.css");
+@import url("tokens/colors.css");
+@import url("tokens/typography.css");
+@import url("tokens/spacing.css");
+@import url("tokens/radius.css");
+@import url("tokens/shadows.css");
+@import url("tokens/motion.css");
+@import url("tokens/zones.css");
+@import url("tokens/dark.css");
+
+html,body{margin:0;min-height:100%}
+body{font-family:var(--font-sans);font-size:var(--text-base);background:var(--bg-app);
+  color:var(--text-primary);line-height:var(--leading-body)}
+*,*::before,*::after{box-sizing:border-box}
+a{color:var(--primary);text-decoration:none}
+a:hover{color:var(--primary-dark);text-decoration:underline}
+svg{display:block}
